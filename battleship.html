@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battleship</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Base settings for the standalone file */
+[hidden] { display: none !important; }
+body { margin: 0; }
+
+/* Layout: a naval plotting table – status strip on top, two 10×10 sea charts side by side, stacked on phones */
+:root {
+  --bg: #e4eaec;
+  --panel: #f3f6f6;
+  --ink: #13222a;
+  --muted: #586972;
+  --line: #b6c4c9;
+  --water: #d3e1e5;
+  --ship: #3a4d58;
+  --hit: #cf3727;
+  --sunk: #7a1b14;
+  --miss: #8199a4;
+  --accent: #d99a0b;
+  --accent-ink: #1b1400;
+  --ok: #2c7a58;
+  --ok-soft: #b8dccb;
+  --bad-soft: #f1c3bc;
+  --scrim: rgb(19 34 42 / 0.55);
+
+  --font-display: "Saira Stencil One", "Impact", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a131a; --panel: #101d25; --ink: #dbe6e9; --muted: #8ba0a9; --line: #22343d;
+    --water: #11252f; --ship: #6b8696; --hit: #ff5843; --sunk: #b2271b; --miss: #4d6873;
+    --accent: #f2b52e; --accent-ink: #1b1400; --ok: #4fbf8a; --ok-soft: #1c4b37; --bad-soft: #5a211b; --scrim: rgb(2 6 9 / 0.7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a131a; --panel: #101d25; --ink: #dbe6e9; --muted: #8ba0a9; --line: #22343d;
+  --water: #11252f; --ship: #6b8696; --hit: #ff5843; --sunk: #b2271b; --miss: #4d6873;
+  --accent: #f2b52e; --accent-ink: #1b1400; --ok: #4fbf8a; --ok-soft: #1c4b37; --bad-soft: #5a211b; --scrim: rgb(2 6 9 / 0.7);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding-inline: 1rem;
+  padding-block: 1.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Header */
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 0.75rem;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 7vw, 3.8rem);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+.sub { margin: 0.35rem 0 0; color: var(--muted); }
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.85rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+}
+.status-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--muted); }
+.status[data-turn="player"] .status-dot { background: var(--accent); }
+.status[data-turn="computer"] .status-dot { background: var(--hit); animation: blink 0.8s infinite alternate; }
+@keyframes blink { from { opacity: 1; } to { opacity: 0.25; } }
+
+/* Message strip */
+.dispatch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+}
+.message { margin: 0; font-size: 1.15rem; font-weight: 600; text-wrap: balance; min-height: 1.5em; }
+.message[data-kind="hit"], .message[data-kind="sunk"] { color: var(--hit); }
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.85rem; color: var(--muted); }
+.log li::before { content: "› "; }
+
+/* Setup */
+.setup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+}
+.setup-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ship-picker, .setup-actions, .play-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ship-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font: inherit;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+.ship-btn[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.ship-btn.placed { color: var(--muted); }
+.ship-btn.placed .pips span { background: var(--ok); }
+.pips { display: inline-flex; gap: 2px; }
+.pips span { width: 0.6rem; height: 0.6rem; background: var(--ship); border-radius: 1px; }
+.hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
+
+/* Difficulty picker: segmented control built from radio buttons */
+.difficulty { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.difficulty legend { padding: 0; }
+.segments { display: inline-flex; flex-wrap: wrap; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; align-self: flex-start; }
+.segments input { position: absolute; opacity: 0; pointer-events: none; }
+.segments label { padding: 0.45rem 1rem; font-weight: 600; cursor: pointer; border-left: 1.5px solid var(--ink); }
+.segments label:first-of-type { border-left: 0; }
+.segments input:checked + label { background: var(--ink); color: var(--bg); }
+.segments input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -4px; }
+.level-tag { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+kbd { font-family: var(--font-mono); font-size: 0.8em; border: 1px solid var(--line); border-radius: 3px; padding: 0 0.3em; }
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  padding: 0.5rem 0.95rem;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { background: var(--panel); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.06); background: var(--accent); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:focus-visible, .ship-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Boards */
+.boards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 2rem;
+}
+.board-wrap { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; max-width: 32rem; width: 100%; justify-self: center; }
+.board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; letter-spacing: 0.03em; margin: 0; }
+.tally { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.5rem repeat(10, minmax(0, 1fr));
+  gap: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.axis {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+}
+.cell {
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: var(--water);
+  border-radius: 2px;
+  position: relative;
+  font: inherit;
+  color: inherit;
+}
+.cell:disabled { cursor: default; }
+.cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 1; }
+.cell.ship { background: var(--ship); }
+.cell.preview-ok { background: var(--ok-soft); box-shadow: inset 0 0 0 2px var(--ok); }
+.cell.preview-bad { background: var(--bad-soft); box-shadow: inset 0 0 0 2px var(--hit); }
+.cell.revealed { background: transparent; box-shadow: inset 0 0 0 2px var(--ship); }
+
+.cell.miss::after {
+  content: "";
+  position: absolute;
+  inset: 36%;
+  border-radius: 50%;
+  background: var(--miss);
+}
+.cell.hit { background: var(--hit); }
+.cell.hit::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  background:
+    linear-gradient(45deg, transparent 42%, var(--panel) 42% 58%, transparent 58%),
+    linear-gradient(-45deg, transparent 42%, var(--panel) 42% 58%, transparent 58%);
+}
+.cell.sunk {
+  background: repeating-linear-gradient(135deg, var(--sunk) 0 4px, var(--hit) 4px 7px);
+  box-shadow: inset 0 0 0 2px var(--sunk);
+}
+.cell.just-shot { animation: ping 0.45s ease-out; }
+@keyframes ping { from { transform: scale(0.6); } to { transform: scale(1); } }
+
+.grid.targetable .cell:not(.shot) { cursor: crosshair; }
+.grid.targetable .cell:not(.shot):hover { box-shadow: inset 0 0 0 2px var(--accent); }
+.grid.placing .cell { cursor: pointer; }
+.grid.waiting { opacity: 0.75; }
+
+.fleet { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; font-size: 0.85rem; }
+.fleet li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.fleet .pips span.hit { background: var(--hit); }
+.fleet li.sunk { color: var(--muted); text-decoration: line-through; }
+.fleet li.sunk .pips span { background: var(--sunk); }
+.fleet li.unknown .pips span { background: var(--line); }
+
+/* End banner: fixed over the boards, centred in the window */
+.end {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+}
+.end-card {
+  width: min(100%, 34rem);
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  border-top: 6px solid var(--accent);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 0.35);
+  animation: banner-in 0.35s ease-out;
+}
+.end[data-result="computer"] .end-card { border-top-color: var(--hit); }
+.end-eyebrow {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.end-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.4rem, 10vw, 4rem);
+  line-height: 0.95;
+  text-wrap: balance;
+}
+.end-stats {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+.end-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+.end .btn { color: var(--bg); border-color: var(--bg); }
+.end .btn:hover:not(:disabled) { background: transparent; opacity: 0.85; }
+.end .btn.primary { color: var(--accent-ink); border-color: var(--accent); background: var(--accent); }
+@keyframes banner-in { from { opacity: 0; transform: translateY(1rem) scale(0.96); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cell.just-shot, .status[data-turn="computer"] .status-dot, .end-card { animation: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Battleship</h1>
+      <p class="sub">Sink the computer’s fleet before it sinks yours.</p>
+    </div>
+    <div class="status" id="status" role="status">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="turnText">Place your ships</span>
+    </div>
+  </header>
+
+  <section class="dispatch" aria-live="polite">
+    <p class="message" id="message"></p>
+    <ol class="log" id="log"></ol>
+  </section>
+
+  <section class="end" id="endPanel" role="dialog" aria-modal="true" aria-labelledby="endText" hidden>
+    <div class="end-card">
+      <p class="end-eyebrow" id="endEyebrow">Game over</p>
+      <h2 class="end-title" id="endText"></h2>
+      <p class="end-stats" id="endStats"></p>
+      <div class="end-actions">
+        <button class="btn primary" id="endRestartBtn" type="button">Play again</button>
+        <button class="btn" id="endCloseBtn" type="button">Show the board</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="setup" id="setupPanel" aria-label="Place ships">
+    <fieldset class="difficulty" id="difficultyPicker">
+      <legend class="setup-label">Difficulty</legend>
+      <div class="segments">
+        <input type="radio" name="difficulty" id="difficultyEasy" value="easy">
+        <label for="difficultyEasy">Easy</label>
+        <input type="radio" name="difficulty" id="difficultyMedium" value="medium">
+        <label for="difficultyMedium">Medium</label>
+        <input type="radio" name="difficulty" id="difficultyHard" value="hard">
+        <label for="difficultyHard">Hard</label>
+      </div>
+      <p class="hint" id="difficultyHint"></p>
+    </fieldset>
+    <p class="setup-label">Choose a ship</p>
+    <div class="ship-picker" id="shipPicker"></div>
+    <div class="setup-actions">
+      <button class="btn" id="rotateBtn" type="button">Direction: horizontal</button>
+      <button class="btn" id="randomBtn" type="button">Random placement</button>
+      <button class="btn" id="clearBtn" type="button">Clear</button>
+      <button class="btn primary" id="startBtn" type="button" disabled>Start game</button>
+    </div>
+    <p class="hint">Point at a square to see where the ship will go. Click to place it (on mobile: tap once to preview, tap again to place). <kbd>R</kbd> switches direction. Click a placed ship to move it.</p>
+  </section>
+
+  <div class="play-actions" id="playActions" hidden>
+    <button class="btn" id="restartBtn" type="button">Play again</button>
+    <button class="btn" id="showResultBtn" type="button" hidden>Show result</button>
+  </div>
+
+  <main class="boards">
+    <section class="board-wrap" aria-labelledby="playerTitle">
+      <div class="board-head">
+        <h2 id="playerTitle">Your fleet</h2>
+        <span class="tally" id="playerTally"></span>
+      </div>
+      <div class="grid" id="playerGrid"></div>
+      <ul class="fleet" id="playerFleet"></ul>
+    </section>
+    <section class="board-wrap" aria-labelledby="computerTitle">
+      <div class="board-head">
+        <h2 id="computerTitle">Enemy waters</h2>
+        <span class="tally" id="computerTally"></span>
+      </div>
+      <div class="grid" id="computerGrid"></div>
+      <ul class="fleet" id="computerFleet"></ul>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ===== Constants ===== */
+const BOARD_SIZE = 10;
+const COLUMN_LABELS = "ABCDEFGHIJ";
+const COMPUTER_DELAY_MS = 700;
+const DEFAULT_DIFFICULTY = "medium";
+const DIFFICULTIES = {
+  easy:   { label: "Easy",   description: "The computer fires at random squares." },
+  medium: { label: "Medium", description: "The computer fires at random until it hits, then fires around the hit until the ship is sunk." },
+  hard:   { label: "Hard",   description: "The computer works out where your remaining ships are most likely to be." },
+};
+const FLEET = [
+  { id: "battleship", name: "battleship", length: 4 },
+  { id: "cruiser",    name: "cruiser",    length: 3 },
+  { id: "destroyer",  name: "destroyer",  length: 3 },
+  { id: "sub1",       name: "submarine",  length: 2 },
+  { id: "sub2",       name: "submarine",  length: 2 },
+];
+
+/* ===== Game logic (pure, no DOM) ===== */
+function cellKey(row, col) { return row + "," + col; }
+function coordinateName(row, col) { return COLUMN_LABELS[col] + (row + 1); }
+function capitalize(text) { return text.charAt(0).toUpperCase() + text.slice(1); }
+
+function createSide() {
+  return { ships: [], shots: new Map() }; // shots: cellKey -> "hit" | "miss"
+}
+
+function getShipCells(row, col, length, orientation) {
+  const cells = [];
+  for (let i = 0; i < length; i++) {
+    cells.push(orientation === "horizontal" ? { row, col: col + i } : { row: row + i, col });
+  }
+  return cells;
+}
+
+function isInsideBoard(cell) {
+  return cell.row >= 0 && cell.row < BOARD_SIZE && cell.col >= 0 && cell.col < BOARD_SIZE;
+}
+
+function isPlacementValid(ships, cells) {
+  const occupied = new Set();
+  ships.forEach(ship => ship.cells.forEach(c => occupied.add(cellKey(c.row, c.col))));
+  return cells.every(c => isInsideBoard(c) && !occupied.has(cellKey(c.row, c.col)));
+}
+
+function createShip(definition, cells) {
+  return { ...definition, cells, hits: new Set() };
+}
+
+function randomInt(max) { return Math.floor(Math.random() * max); }
+
+function createRandomFleet() {
+  const ships = [];
+  for (const definition of FLEET) {
+    let placed = false;
+    while (!placed) {
+      const orientation = Math.random() < 0.5 ? "horizontal" : "vertical";
+      const cells = getShipCells(randomInt(BOARD_SIZE), randomInt(BOARD_SIZE), definition.length, orientation);
+      if (isPlacementValid(ships, cells)) {
+        ships.push(createShip(definition, cells));
+        placed = true;
+      }
+    }
+  }
+  return ships;
+}
+
+function findShipAt(side, row, col) {
+  return side.ships.find(ship => ship.cells.some(c => c.row === row && c.col === col)) || null;
+}
+
+function isShipSunk(ship) { return ship.hits.size === ship.length; }
+function areAllShipsSunk(side) { return side.ships.length > 0 && side.ships.every(isShipSunk); }
+function hasBeenShot(side, row, col) { return side.shots.has(cellKey(row, col)); }
+
+function fireAt(side, row, col) {
+  const ship = findShipAt(side, row, col);
+  if (!ship) {
+    side.shots.set(cellKey(row, col), "miss");
+    return { hit: false, ship: null, sunk: false };
+  }
+  side.shots.set(cellKey(row, col), "hit");
+  ship.hits.add(cellKey(row, col));
+  return { hit: true, ship, sunk: isShipSunk(ship) };
+}
+
+
+/* ===== Computer strategies (one per difficulty) ===== */
+function getUnshotCells(side) {
+  const cells = [];
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      if (!hasBeenShot(side, row, col)) cells.push({ row, col });
+    }
+  }
+  return cells;
+}
+
+// Hits on ships that are not sunk yet. The computer knows which ships are sunk,
+// because the game announces it, but not where the undamaged parts are.
+function getUnresolvedHits(side) {
+  const hits = [];
+  side.shots.forEach((result, key) => {
+    if (result !== "hit") return;
+    const [row, col] = key.split(",").map(Number);
+    if (!isShipSunk(findShipAt(side, row, col))) hits.push({ row, col });
+  });
+  return hits;
+}
+
+function getSunkCellKeys(side) {
+  const keys = new Set();
+  side.ships.filter(isShipSunk).forEach(ship => ship.cells.forEach(c => keys.add(cellKey(c.row, c.col))));
+  return keys;
+}
+
+function getRemainingShipLengths(side) {
+  return side.ships.filter(ship => !isShipSunk(ship)).map(ship => ship.length);
+}
+
+// Easy: a random square that has not been fired at.
+function pickRandomTarget(side) {
+  const options = getUnshotCells(side);
+  return options[randomInt(options.length)];
+}
+
+// Medium: "hunt and sink". If there is an unsunk hit, the computer fires at one of its neighbours.
+function pickHuntAndSinkTarget(side) {
+  const neighbours = [];
+  getUnresolvedHits(side).forEach(hit => {
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dRow, dCol]) => {
+      const cell = { row: hit.row + dRow, col: hit.col + dCol };
+      if (isInsideBoard(cell) && !hasBeenShot(side, cell.row, cell.col)) neighbours.push(cell);
+    });
+  });
+  return neighbours.length ? neighbours[randomInt(neighbours.length)] : pickRandomTarget(side);
+}
+
+// Hard: probability map. For each remaining ship, every position it could occupy
+// is tried. Each square scores a point for every position that covers it.
+// Positions that pass through unsunk hits weigh much more.
+function pickProbabilityTarget(side) {
+  const sunkKeys = getSunkCellKeys(side);
+  const unresolvedKeys = new Set(getUnresolvedHits(side).map(c => cellKey(c.row, c.col)));
+  const isTargetMode = unresolvedKeys.size > 0;
+  const scores = new Map();
+
+  getRemainingShipLengths(side).forEach(length => {
+    for (let row = 0; row < BOARD_SIZE; row++) {
+      for (let col = 0; col < BOARD_SIZE; col++) {
+        ["horizontal", "vertical"].forEach(orientation => {
+          const cells = getShipCells(row, col, length, orientation);
+          const isPossible = cells.every(c => isInsideBoard(c)
+            && side.shots.get(cellKey(c.row, c.col)) !== "miss"
+            && !sunkKeys.has(cellKey(c.row, c.col)));
+          if (!isPossible) return;
+
+          const coveredHits = cells.filter(c => unresolvedKeys.has(cellKey(c.row, c.col))).length;
+          if (isTargetMode && coveredHits === 0) return;
+          const weight = isTargetMode ? coveredHits * 20 : 1;
+
+          cells.forEach(c => {
+            if (hasBeenShot(side, c.row, c.col)) return;
+            const key = cellKey(c.row, c.col);
+            scores.set(key, (scores.get(key) || 0) + weight);
+          });
+        });
+      }
+    }
+  });
+
+  let bestScore = 0;
+  let bestCells = [];
+  scores.forEach((score, key) => {
+    const [row, col] = key.split(",").map(Number);
+    if (score > bestScore) { bestScore = score; bestCells = [{ row, col }]; }
+    else if (score === bestScore) bestCells.push({ row, col });
+  });
+  return bestCells.length ? bestCells[randomInt(bestCells.length)] : pickRandomTarget(side);
+}
+
+function pickComputerTarget(side, difficulty) {
+  if (difficulty === "hard") return pickProbabilityTarget(side);
+  if (difficulty === "medium") return pickHuntAndSinkTarget(side);
+  return pickRandomTarget(side);
+}
+
+function countHits(side) {
+  let hits = 0;
+  side.shots.forEach(result => { if (result === "hit") hits++; });
+  return hits;
+}
+
+/* ===== State ===== */
+let state;
+let computerTimer = null;
+
+function createInitialState(difficulty) {
+  return {
+    difficulty,                // "easy" | "medium" | "hard", kept between rounds
+    phase: "placement",        // "placement" | "playing" | "over"
+    turn: "player",            // "player" | "computer"
+    winner: null,
+    resultDismissed: false,  // true when the player has closed the end banner to look at the board
+    orientation: "horizontal",
+    selectedShipId: FLEET[0].id,
+    pendingCell: null,         // previewed anchor square { row, col }
+    lastShot: null,            // { board, row, col } for a small animation
+    player: createSide(),
+    computer: createSide(),
+    message: "Choose a ship and place it on your board.",
+    messageKind: "info",
+    log: [],
+  };
+}
+
+/* ===== DOM references ===== */
+const elements = {
+  status: document.getElementById("status"),
+  turnText: document.getElementById("turnText"),
+  message: document.getElementById("message"),
+  log: document.getElementById("log"),
+  endPanel: document.getElementById("endPanel"),
+  endText: document.getElementById("endText"),
+  endEyebrow: document.getElementById("endEyebrow"),
+  endStats: document.getElementById("endStats"),
+  endCloseBtn: document.getElementById("endCloseBtn"),
+  showResultBtn: document.getElementById("showResultBtn"),
+  setupPanel: document.getElementById("setupPanel"),
+  shipPicker: document.getElementById("shipPicker"),
+  rotateBtn: document.getElementById("rotateBtn"),
+  randomBtn: document.getElementById("randomBtn"),
+  clearBtn: document.getElementById("clearBtn"),
+  startBtn: document.getElementById("startBtn"),
+  difficultyPicker: document.getElementById("difficultyPicker"),
+  difficultyHint: document.getElementById("difficultyHint"),
+  playActions: document.getElementById("playActions"),
+  restartBtn: document.getElementById("restartBtn"),
+  endRestartBtn: document.getElementById("endRestartBtn"),
+  playerGrid: document.getElementById("playerGrid"),
+  computerGrid: document.getElementById("computerGrid"),
+  playerFleet: document.getElementById("playerFleet"),
+  computerFleet: document.getElementById("computerFleet"),
+  playerTally: document.getElementById("playerTally"),
+  computerTally: document.getElementById("computerTally"),
+};
+
+function buildGrid(gridElement, boardName) {
+  gridElement.innerHTML = "";
+  const cells = [];
+  const corner = document.createElement("span");
+  corner.className = "axis";
+  gridElement.append(corner);
+  for (let col = 0; col < BOARD_SIZE; col++) {
+    const label = document.createElement("span");
+    label.className = "axis";
+    label.textContent = COLUMN_LABELS[col];
+    gridElement.append(label);
+  }
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    const rowLabel = document.createElement("span");
+    rowLabel.className = "axis";
+    rowLabel.textContent = row + 1;
+    gridElement.append(rowLabel);
+    cells.push([]);
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "cell";
+      button.dataset.row = row;
+      button.dataset.col = col;
+      button.setAttribute("aria-label", `${boardName} ${coordinateName(row, col)}`);
+      gridElement.append(button);
+      cells[row].push(button);
+    }
+  }
+  return cells;
+}
+
+const playerCells = buildGrid(elements.playerGrid, "Your board");
+const computerCells = buildGrid(elements.computerGrid, "Computer’s board");
+
+/* ===== Placement ===== */
+function getSelectedDefinition() {
+  return FLEET.find(def => def.id === state.selectedShipId) || null;
+}
+
+function getPreview() {
+  const definition = getSelectedDefinition();
+  if (state.phase !== "placement" || !definition || !state.pendingCell) return null;
+  const cells = getShipCells(state.pendingCell.row, state.pendingCell.col, definition.length, state.orientation);
+  return { cells, valid: isPlacementValid(state.player.ships, cells) };
+}
+
+function selectNextUnplacedShip() {
+  const next = FLEET.find(def => !state.player.ships.some(ship => ship.id === def.id));
+  state.selectedShipId = next ? next.id : null;
+}
+
+function handlePlacementClick(row, col) {
+  const existingShip = findShipAt(state.player, row, col);
+  if (existingShip) {
+    state.player.ships = state.player.ships.filter(ship => ship !== existingShip);
+    state.selectedShipId = existingShip.id;
+    state.pendingCell = { row, col };
+    setMessage(`You picked up your ${existingShip.name}. Choose a new spot.`, "info");
+    render();
+    return;
+  }
+  const isSameAsPreview = state.pendingCell && state.pendingCell.row === row && state.pendingCell.col === col;
+  if (!isSameAsPreview) {
+    state.pendingCell = { row, col };
+    render();
+    return;
+  }
+  const preview = getPreview();
+  const definition = getSelectedDefinition();
+  if (!preview || !definition) return;
+  if (!preview.valid) {
+    setMessage("A ship can’t go outside the board or overlap another ship.", "warn");
+    render();
+    return;
+  }
+  state.player.ships.push(createShip(definition, preview.cells));
+  selectNextUnplacedShip();
+  setMessage(state.selectedShipId
+    ? `${capitalize(definition.name)} placed. Place the next ship.`
+    : "All ships are placed. Press Start game.", "info");
+  render();
+}
+
+function toggleOrientation() {
+  state.orientation = state.orientation === "horizontal" ? "vertical" : "horizontal";
+  render();
+}
+
+function randomizePlayerFleet() {
+  state.player.ships = createRandomFleet();
+  state.selectedShipId = null;
+  state.pendingCell = null;
+  setMessage("Your fleet has been placed at random. Start the game or shuffle again.", "info");
+  render();
+}
+
+function clearPlayerFleet() {
+  state.player.ships = [];
+  state.selectedShipId = FLEET[0].id;
+  state.pendingCell = null;
+  setMessage("The board is cleared. Place your ships.", "info");
+  render();
+}
+
+function startGame() {
+  if (state.player.ships.length !== FLEET.length) return;
+  state.computer.ships = createRandomFleet();
+  state.phase = "playing";
+  state.turn = "player";
+  state.pendingCell = null;
+  state.selectedShipId = null;
+  setMessage(`The game has started on ${DIFFICULTIES[state.difficulty].label.toLowerCase()}. Fire by clicking a square in enemy waters.`, "info");
+  render();
+}
+
+/* ===== Turns ===== */
+function playerShoot(row, col) {
+  if (state.phase !== "playing" || state.turn !== "player") return;
+  if (hasBeenShot(state.computer, row, col)) return;
+
+  const result = fireAt(state.computer, row, col);
+  const coordinate = coordinateName(row, col);
+  state.lastShot = { board: "computer", row, col };
+
+  if (result.sunk) {
+    setMessage(`You sank the computer’s ${result.ship.name}!`, "sunk");
+  } else if (result.hit) {
+    setMessage(`Hit on ${coordinate}!`, "hit");
+  } else {
+    setMessage(`Miss on ${coordinate}.`, "miss");
+  }
+
+  if (areAllShipsSunk(state.computer)) { endGame("player"); return; }
+
+  state.turn = "computer";
+  render();
+  computerTimer = setTimeout(computerShoot, COMPUTER_DELAY_MS);
+}
+
+function computerShoot() {
+  computerTimer = null;
+  if (state.phase !== "playing") return;
+
+  const target = pickComputerTarget(state.player, state.difficulty);
+  const result = fireAt(state.player, target.row, target.col);
+  const coordinate = coordinateName(target.row, target.col);
+  state.lastShot = { board: "player", row: target.row, col: target.col };
+
+  if (result.sunk) {
+    setMessage(`The computer sank your ${result.ship.name}!`, "sunk");
+  } else if (result.hit) {
+    setMessage(`The computer fired at ${coordinate}: hit.`, "hit");
+  } else {
+    setMessage(`The computer fired at ${coordinate}: miss. Your turn.`, "miss");
+  }
+
+  if (areAllShipsSunk(state.player)) { endGame("computer"); return; }
+
+  state.turn = "player";
+  render();
+}
+
+function endGame(winner) {
+  state.phase = "over";
+  state.winner = winner;
+  setMessage(winner === "player" ? "Congratulations! You won!" : "Game Over! The computer won.", winner === "player" ? "info" : "sunk");
+  render();
+}
+
+function resetGame() {
+  if (computerTimer) clearTimeout(computerTimer);
+  computerTimer = null;
+  state = createInitialState(state ? state.difficulty : loadSavedDifficulty());
+  render();
+}
+
+function setMessage(text, kind) {
+  if (state.message && state.phase !== "placement") state.log.unshift(state.message);
+  state.log = state.log.slice(0, 5);
+  state.message = text;
+  state.messageKind = kind;
+}
+
+/* ===== Difficulty ===== */
+// The choice is saved in the browser so it is still there next time. If that fails, the default level is used.
+function loadSavedDifficulty() {
+  try {
+    const saved = localStorage.getItem("battleship-difficulty");
+    if (saved && DIFFICULTIES[saved]) return saved;
+  } catch (error) { /* storage not available */ }
+  return DEFAULT_DIFFICULTY;
+}
+
+function setDifficulty(difficulty) {
+  if (state.phase !== "placement" || !DIFFICULTIES[difficulty]) return;
+  state.difficulty = difficulty;
+  try { localStorage.setItem("battleship-difficulty", difficulty); } catch (error) { /* ignored */ }
+  render();
+}
+
+/* ===== Rendering ===== */
+function render() {
+  renderStatus();
+  renderSetup();
+  renderPlayerBoard();
+  renderComputerBoard();
+  renderFleets();
+  state.lastShot = null;
+}
+
+function renderStatus() {
+  const placedCount = state.player.ships.length;
+  let text;
+  if (state.phase === "placement") text = `Place your ships · ${placedCount}/${FLEET.length}`;
+  else if (state.phase === "over") text = "Game over";
+  else text = state.turn === "player" ? "Your turn" : "Computer’s turn";
+  elements.turnText.textContent = text;
+  elements.status.dataset.turn = state.phase === "playing" ? state.turn : "";
+
+  elements.message.textContent = state.message;
+  elements.message.dataset.kind = state.messageKind;
+  elements.log.innerHTML = "";
+  state.log.forEach(entry => {
+    const item = document.createElement("li");
+    item.textContent = entry;
+    elements.log.append(item);
+  });
+
+  renderEndBanner();
+  const isOver = state.phase === "over";
+  elements.playActions.hidden = !(state.phase === "playing" || (isOver && state.resultDismissed));
+  elements.showResultBtn.hidden = !(isOver && state.resultDismissed);
+}
+
+function renderEndBanner() {
+  const showBanner = state.phase === "over" && !state.resultDismissed;
+  const wasHidden = elements.endPanel.hidden;
+  elements.endPanel.hidden = !showBanner;
+  if (!showBanner) return;
+
+  const playerWon = state.winner === "player";
+  const shots = state.computer.shots.size;
+  const hits = countHits(state.computer);
+  const accuracy = shots ? Math.round((hits / shots) * 100) : 0;
+  elements.endPanel.dataset.result = state.winner;
+  elements.endEyebrow.textContent = playerWon ? "The computer’s fleet is sunk" : "Your fleet is sunk";
+  elements.endText.textContent = playerWon ? "Congratulations! You won!" : "Game Over! The computer won.";
+  elements.endStats.textContent = `Level: ${DIFFICULTIES[state.difficulty].label} · ${shots} shots · ${hits} hits · ${accuracy}% accuracy`;
+  if (wasHidden) elements.endRestartBtn.focus();
+}
+
+function setResultDismissed(dismissed) {
+  state.resultDismissed = dismissed;
+  render();
+  if (!dismissed) return;
+  elements.restartBtn.focus();
+}
+
+function renderSetup() {
+  const isPlacing = state.phase === "placement";
+  elements.setupPanel.hidden = !isPlacing;
+  if (!isPlacing) return;
+
+  elements.rotateBtn.textContent = `Direction: ${state.orientation}`;
+  elements.startBtn.disabled = state.player.ships.length !== FLEET.length;
+  elements.difficultyPicker.querySelectorAll("input").forEach(input => { input.checked = input.value === state.difficulty; });
+  elements.difficultyHint.textContent = DIFFICULTIES[state.difficulty].description;
+
+  elements.shipPicker.innerHTML = "";
+  FLEET.forEach(definition => {
+    const isPlaced = state.player.ships.some(ship => ship.id === definition.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ship-btn" + (isPlaced ? " placed" : "");
+    button.setAttribute("aria-pressed", String(state.selectedShipId === definition.id));
+    button.dataset.shipId = definition.id;
+    const pips = "<span></span>".repeat(definition.length);
+    button.innerHTML = `${capitalize(definition.name)} <span class="pips" aria-hidden="true">${pips}</span>${isPlaced ? " ✓" : ""}`;
+    button.setAttribute("aria-label", `${capitalize(definition.name)}, ${definition.length} squares${isPlaced ? ", placed" : ""}`);
+    elements.shipPicker.append(button);
+  });
+}
+
+function shotClasses(side, row, col) {
+  const result = side.shots.get(cellKey(row, col));
+  if (!result) return [];
+  const ship = result === "hit" ? findShipAt(side, row, col) : null;
+  if (ship && isShipSunk(ship)) return ["shot", "sunk"];
+  return ["shot", result];
+}
+
+function renderPlayerBoard() {
+  const preview = getPreview();
+  const previewKeys = new Set(preview ? preview.cells.filter(isInsideBoard).map(c => cellKey(c.row, c.col)) : []);
+  const isPlacing = state.phase === "placement";
+  elements.playerGrid.classList.toggle("placing", isPlacing);
+
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      const button = playerCells[row][col];
+      const classes = ["cell"];
+      if (findShipAt(state.player, row, col)) classes.push("ship");
+      classes.push(...shotClasses(state.player, row, col));
+      if (previewKeys.has(cellKey(row, col))) classes.push(preview.valid ? "preview-ok" : "preview-bad");
+      if (state.lastShot && state.lastShot.board === "player" && state.lastShot.row === row && state.lastShot.col === col) classes.push("just-shot");
+      button.className = classes.join(" ");
+      button.disabled = !isPlacing;
+    }
+  }
+}
+
+function renderComputerBoard() {
+  const canShoot = state.phase === "playing" && state.turn === "player";
+  elements.computerGrid.classList.toggle("targetable", canShoot);
+  elements.computerGrid.classList.toggle("waiting", state.phase === "playing" && state.turn === "computer");
+
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      const button = computerCells[row][col];
+      const classes = ["cell", ...shotClasses(state.computer, row, col)];
+      const isShot = hasBeenShot(state.computer, row, col);
+      // After the game ends, the computer’s remaining ships are shown as outlines.
+      if (state.phase === "over" && !isShot && findShipAt(state.computer, row, col)) classes.push("revealed");
+      if (state.lastShot && state.lastShot.board === "computer" && state.lastShot.row === row && state.lastShot.col === col) classes.push("just-shot");
+      button.className = classes.join(" ");
+      button.disabled = !canShoot || isShot;
+    }
+  }
+}
+
+function renderFleets() {
+  // Player’s fleet: shows exactly which parts have been hit.
+  elements.playerFleet.innerHTML = "";
+  FLEET.forEach(definition => {
+    const ship = state.player.ships.find(s => s.id === definition.id);
+    const item = document.createElement("li");
+    const sunk = ship && isShipSunk(ship);
+    if (sunk) item.className = "sunk";
+    if (!ship) item.className = "unknown";
+    const pips = Array.from({ length: definition.length }, (_, i) =>
+      `<span class="${ship && i < ship.hits.size ? "hit" : ""}"></span>`).join("");
+    item.innerHTML = `<span class="pips" aria-hidden="true">${pips}</span>${capitalize(definition.name)}`;
+    elements.playerFleet.append(item);
+  });
+
+  // Computer’s fleet: only afloat or sunk, never where it was hit.
+  elements.computerFleet.innerHTML = "";
+  FLEET.forEach(definition => {
+    const ship = state.computer.ships.find(s => s.id === definition.id);
+    const sunk = ship && isShipSunk(ship);
+    const item = document.createElement("li");
+    item.className = sunk ? "sunk" : "";
+    const pips = "<span></span>".repeat(definition.length);
+    item.innerHTML = `<span class="pips" aria-hidden="true">${pips}</span>${capitalize(definition.name)}`;
+    elements.computerFleet.append(item);
+  });
+
+  const playerShots = state.computer.shots.size;
+  const computerShots = state.player.shots.size;
+  elements.computerTally.textContent = state.phase === "placement" ? `Hidden fleet · ${DIFFICULTIES[state.difficulty].label}` : `${DIFFICULTIES[state.difficulty].label} · Your shots ${playerShots} · hits ${countHits(state.computer)}`;
+  elements.playerTally.textContent = state.phase === "placement" ? "" : `Computer’s shots ${computerShots} · hits ${countHits(state.player)}`;
+}
+
+/* ===== Events ===== */
+function cellFromEvent(event) {
+  const cell = event.target.closest(".cell");
+  if (!cell) return null;
+  return { row: Number(cell.dataset.row), col: Number(cell.dataset.col) };
+}
+
+elements.playerGrid.addEventListener("pointerover", event => {
+  if (state.phase !== "placement" || event.pointerType !== "mouse") return;
+  const cell = cellFromEvent(event);
+  if (!cell) return;
+  state.pendingCell = cell;
+  render();
+});
+elements.playerGrid.addEventListener("pointerleave", event => {
+  if (state.phase !== "placement" || event.pointerType !== "mouse") return;
+  state.pendingCell = null;
+  render();
+});
+elements.playerGrid.addEventListener("focusin", event => {
+  if (state.phase !== "placement" || !event.target.matches(":focus-visible")) return;
+  const cell = cellFromEvent(event);
+  if (!cell) return;
+  state.pendingCell = cell;
+  render();
+});
+elements.playerGrid.addEventListener("click", event => {
+  if (state.phase !== "placement") return;
+  const cell = cellFromEvent(event);
+  if (cell) handlePlacementClick(cell.row, cell.col);
+});
+
+elements.computerGrid.addEventListener("click", event => {
+  const cell = cellFromEvent(event);
+  if (cell) playerShoot(cell.row, cell.col);
+});
+
+elements.shipPicker.addEventListener("click", event => {
+  const button = event.target.closest(".ship-btn");
+  if (!button) return;
+  const shipId = button.dataset.shipId;
+  const placedShip = state.player.ships.find(ship => ship.id === shipId);
+  if (placedShip) {
+    state.player.ships = state.player.ships.filter(ship => ship !== placedShip);
+    setMessage(`Your ${placedShip.name} was removed. Place it again.`, "info");
+  }
+  state.selectedShipId = shipId;
+  render();
+});
+
+elements.rotateBtn.addEventListener("click", toggleOrientation);
+elements.randomBtn.addEventListener("click", randomizePlayerFleet);
+elements.clearBtn.addEventListener("click", clearPlayerFleet);
+elements.startBtn.addEventListener("click", startGame);
+elements.difficultyPicker.addEventListener("change", event => setDifficulty(event.target.value));
+elements.restartBtn.addEventListener("click", resetGame);
+elements.endRestartBtn.addEventListener("click", resetGame);
+elements.endCloseBtn.addEventListener("click", () => setResultDismissed(true));
+elements.showResultBtn.addEventListener("click", () => setResultDismissed(false));
+// Clicking the dark backdrop around the banner closes it.
+elements.endPanel.addEventListener("click", event => {
+  if (event.target === elements.endPanel) setResultDismissed(true);
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && state.phase === "over" && !state.resultDismissed) {
+    setResultDismissed(true);
+    return;
+  }
+  if (state.phase === "placement" && (event.key === "r" || event.key === "R") && !event.ctrlKey && !event.metaKey) {
+    toggleOrientation();
+  }
+});
+
+resetGame();
+</script>
+</body>
+</html>
