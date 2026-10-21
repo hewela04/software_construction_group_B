@@ -1,50 +1,37 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Battleship Game Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Simple, Maintainable Code
+Implementation must favor clear, readable code that is easy to maintain. Keep the design appropriate to a small browser game; avoid unnecessary complexity and abstractions. Add comments where non-obvious or complex logic benefits from explanation.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Specification Fidelity
+Implement the Battleship requirements delivered by the project workers. Treat the agreed specifications as the source of truth for game behavior. Any proposed change to a stated requirement must be reviewed and documented before it is adopted.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Verified Game Rules
+Essential game rules and functionality must be verified against the specification using automated tests or manual checks, depending on what is practical for this student project. Verification should cover invalid ship placements, hits and misses, win and loss conditions, and restarting the game. 
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Browser-First Scope
+The game must run in a web browser. It does not require a backend, database, or login; do not introduce these dependencies unless the project requirements are formally reviewed and changed.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Reviewable Changes
+Keep changes focused and consistent with the existing implementation. Review changes for specification compliance, maintainability, and adequate test coverage before considering them complete.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technical Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Deliver a browser-based game without requiring a backend service, persistent database, or user authentication.
+- Keep game behavior aligned with the documented Battleship requirements.
+- Avoid adding infrastructure or dependencies that are not justified by an approved requirement.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development and Quality Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Consult the current specifications before implementing or changing game behavior.
+- When requirements change, record the change and its review so implementation and tests can be updated consistently.
+- Validate rule changes with tests that exercise the relevant outcomes, including invalid placements, hits, misses, win/loss, and restart behavior where applicable.
+- Verify that the delivered game runs in a browser and that changes preserve existing specified behavior.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution guides project implementation and review. The Battleship specifications define detailed game behavior and must remain consistent with these principles. Proposed amendments to this constitution or to agreed requirements must be reviewed and documented; update the constitution version and amendment date when it changes. Changes must not silently weaken the browser-only scope or required rule verification.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-10-21 | **Last Amended**: 2026-10-21
