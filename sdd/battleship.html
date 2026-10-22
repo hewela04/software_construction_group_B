@@ -186,11 +186,14 @@
         <div class="placement-actions">
           <button id="randomize-fleet" type="button">Randomize fleet</button>
           <button id="confirm-placement" type="button" disabled>Confirm placement</button>
+          <button id="start-game" type="button" disabled>Start game</button>
           <p id="placement-status" role="status" aria-live="polite">
             Select a ship and choose a starting square to preview its placement.
           </p>
         </div>
       </section>
+
+      <p id="turn-status" role="status" aria-live="polite"></p>
 
       <section class="board-layout" aria-label="Game boards">
         <section class="board-panel" aria-labelledby="human-board-heading">
@@ -470,6 +473,9 @@
       const shipPicker = document.getElementById("ship-picker");
       const randomizeFleetButton = document.getElementById("randomize-fleet");
       const confirmPlacementButton = document.getElementById("confirm-placement");
+      const startGameButton = document.getElementById("start-game");
+      const setupControls = document.querySelector(".setup-controls");
+      const turnStatus = document.getElementById("turn-status");
       const placementStatus = document.getElementById("placement-status");
 
       function getPlacementMessage(cells) {
@@ -514,6 +520,61 @@
       function updatePlacementControls() {
         updateHumanBoard();
         confirmPlacementButton.disabled = placementPreview === null;
+        startGameButton.disabled =
+          gameState.phase !== GAME_PHASE.setup ||
+          !isFleetLegal(gameState.boards.human.ships);
+      }
+
+      function isFleetLegal(ships) {
+        if (!Array.isArray(ships) || ships.length !== GAME_DEFINITION.fleet.length) {
+          return false;
+        }
+
+        const remainingShips = [...ships];
+        for (const definition of GAME_DEFINITION.fleet) {
+          const index = remainingShips.findIndex(ship =>
+            ship.id === definition.id &&
+            ship.type === definition.type &&
+            ship.length === definition.length &&
+            Array.isArray(ship.cells) &&
+            ship.cells.length === definition.length,
+          );
+          if (index === -1) return false;
+
+          const [ship] = remainingShips.splice(index, 1);
+          if (!isPlacementValid(remainingShips, ship.cells)) return false;
+          remainingShips.push(ship);
+        }
+        return remainingShips.length === GAME_DEFINITION.fleet.length;
+      }
+
+      function startGame() {
+        if (gameState.phase !== GAME_PHASE.setup ||
+            !isFleetLegal(gameState.boards.human.ships)) {
+          updatePlacementControls();
+          placementStatus.textContent =
+            "Place all five ships legally before starting the game.";
+          return;
+        }
+
+        const computerFleet = createRandomFleet();
+        for (const randomizedShip of computerFleet) {
+          const ship = gameState.boards.computer.ships.find(
+            item => item.id === randomizedShip.id,
+          );
+          if (!ship) {
+            throw new Error(`Randomized fleet contains an unknown ship: ${randomizedShip.id}`);
+          }
+          ship.cells = randomizedShip.cells.map(cell => ({ ...cell }));
+        }
+
+        gameState.phase = GAME_PHASE.playing;
+        gameState.turn = "human";
+        gameState.winner = null;
+        placementPreview = null;
+        setupControls.hidden = true;
+        turnStatus.textContent = "Your turn.";
+        updatePlacementControls();
       }
 
       function randomizeHumanFleet() {
@@ -582,6 +643,7 @@
       });
 
       randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
+      startGameButton.addEventListener("click", startGame);
 
       confirmPlacementButton.addEventListener("click", () => {
         if (!placementPreview) return;

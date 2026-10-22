@@ -53,7 +53,7 @@ file, so they are ordered and not marked parallelizable.
 - [x] T005 [US1] Render two identified 10-by-10 boards with column labels A-J and row labels 1-10, plus setup controls for selecting each unplaced ship and choosing horizontal or vertical orientation, in `sdd/battleship.html`.
 - [x] T006 [US1] Implement human ship-placement preview and confirmation in `sdd/battleship.html`; show proposed occupied squares before confirmation and reject out-of-bounds or overlapping placements without changing any existing ship.
 - [x] T007 [US1] Implement human fleet randomization in `sdd/battleship.html`; generate exactly one length-4 battleship, one length-3 cruiser, one length-3 destroyer, and two length-2 submarines in legal, non-overlapping positions.
-- [ ] T008 [US1] Gate the start control in `sdd/battleship.html` until all five human ships are legally placed; on start, ensure the computer has its own legal randomized fleet, show the human's ships, conceal the computer's unhit ships, and enter active play.
+- [x] T008 [US1] Gate the start control in `sdd/battleship.html` until all five human ships are legally placed; on start, ensure the computer has its own legal randomized fleet, show the human's ships, conceal the computer's unhit ships, and enter active play.
 
 **Checkpoint**: The player can complete setup, inspect the two labeled boards, and enter play only with a complete legal fleet.
 

@@ -1,59 +1,70 @@
-batch_id: "T007"
-completed_tasks: ["T007"]
+batch_id: "T008"
+completed_tasks: ["T008"]
 blocked_tasks: []
 files_changed:
-  T007:
+  T008:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Add a Randomize fleet control and assign generated legal placements to all human ships."
+      description: "Gate game start on a complete legal human fleet; generate a legal computer fleet and enter active play with the human fleet visible and computer ships concealed."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T007 complete."
+      description: "Mark T008 complete."
 upstream_artifacts_consumed:
-  T007:
+  T008:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "Required fleet composition and randomization behavior in FR-004, FR-005, and FR-008."
+      used_for: "Start gating, fleet composition, computer fleet generation, ship visibility, and turn status in FR-004/FR-005/FR-009 through FR-012."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Implementation boundary and legal randomized fleet behavior."
+      used_for: "Phase 3 task ordering and game setup boundary."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Browser-only scope, specification fidelity, and validation principles."
+      used_for: "Browser-only scope, requirement fidelity, and game-rule verification."
     - artifact: "sdd/specs/001-battleship-game/data-model.md"
-      used_for: "Fleet composition and placement invariants."
+      used_for: "Fleet legality and setup-to-active lifecycle invariants."
     - artifact: "sdd/specs/001-battleship-game/quickstart.md"
-      used_for: "Randomized fleet acceptance checks."
+      used_for: "Complete-fleet start and ship visibility validation scenarios."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T007 task scope and sequencing after T006."
+      used_for: "T008 acceptance scope and dependency on T007."
 evidence_mapping:
-  T007:
-    - upstream: "spec.md#FR-008"
-      output: "sdd/battleship.html Randomize fleet control"
-      evidence: "Browser test randomized a complete human fleet with the required five ship types and lengths."
-    - upstream: "spec.md#FR-004/FR-005"
-      output: "sdd/battleship.html human board ship state"
-      evidence: "Browser assertions verified all cells are in bounds, straight, and non-overlapping."
+  T008:
+    - upstream: "spec.md#FR-009"
+      output: "sdd/battleship.html Start game control"
+      evidence: "Browser checks confirmed the control is disabled until all five human ships are legally placed."
+    - upstream: "spec.md#FR-010"
+      output: "sdd/battleship.html computer board state"
+      evidence: "Browser assertions verified the computer receives all five ship types and legal non-overlapping placements."
+    - upstream: "spec.md#FR-011"
+      output: "sdd/battleship.html board rendering"
+      evidence: "After start, all 14 human ship cells remain visible and no computer ship cells are rendered."
+    - upstream: "spec.md#FR-012"
+      output: "sdd/battleship.html phase and turn status"
+      evidence: "Browser assertions confirmed active play phase, human turn, and visible turn message."
 traceability:
-  - requirement: "FR-004"
-    plan_item: "Design Outline: randomized fleets and placement validation"
-    task: "T007"
+  - requirement: "FR-009"
+    plan_item: "Phase 3: User Story 1 implementation"
+    task: "T008"
     files: ["sdd/battleship.html"]
     status: "completed"
-  - requirement: "FR-005"
-    plan_item: "Design Outline: randomized fleets and placement validation"
-    task: "T007"
+  - requirement: "FR-010"
+    plan_item: "Phase 3: User Story 1 implementation"
+    task: "T008"
     files: ["sdd/battleship.html"]
     status: "completed"
-  - requirement: "FR-008"
-    plan_item: "Design Outline: randomized fleets and placement validation"
-    task: "T007"
+  - requirement: "FR-011"
+    plan_item: "Phase 3: User Story 1 implementation"
+    task: "T008"
+    files: ["sdd/battleship.html"]
+    status: "completed"
+  - requirement: "FR-012"
+    plan_item: "Phase 3: User Story 1 implementation"
+    task: "T008"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T007:
+  T008:
     command: "Integrated browser Playwright verification"
-    passed: 7
+    passed: 9
     failed: 0
     skipped: 0
     failures: []
