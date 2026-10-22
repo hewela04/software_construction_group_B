@@ -94,7 +94,7 @@ file, so they are ordered and not marked parallelizable.
 **Purpose**: Verify the full SDD-local experience against the specification.
 
 - [x] T015 Ensure the boards in `sdd/battleship.html` display side by side when space permits and can stack on smaller screens without losing access to game controls.
-- [ ] T016 Validate the SDD-local game against `sdd/specs/001-battleship-game/quickstart.md`, including setup, turns/shots, sinking, win/loss, restart/play again, responsive layout, and keyboard accessibility; record any failures and resolve specification deviations in `sdd/battleship.html`.
+- [x] T016 Validate the SDD-local game against `sdd/specs/001-battleship-game/quickstart.md`, including setup, turns/shots, sinking, win/loss, restart/play again, responsive layout, and keyboard accessibility; record any failures and resolve specification deviations in `sdd/battleship.html`.
 
 ## Dependencies & Execution Order
 

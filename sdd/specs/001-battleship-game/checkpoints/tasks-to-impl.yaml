@@ -5,10 +5,10 @@ metadata:
 
 summary:
   total_tasks: 17
-  completed_tasks: 16
+  completed_tasks: 17
   in_progress_tasks: 0
-  pending_tasks: 1
-  completion_percentage: 94.1
+  pending_tasks: 0
+  completion_percentage: 100.0
 
 tasks:
   - task_id: "T001"
@@ -546,6 +546,43 @@ tasks:
       requirements: ["FR-003", "SC-008"]
       full_trace: "FR-003/SC-008 → responsive board layout → T015 → sdd/battleship.html"
 
+  - task_id: "T016"
+    description: "Validate the complete quickstart experience."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 97
+              line_end: 97
+              change_type: "modified"
+              description: "Mark T016 complete after recording the full quickstart validation."
+        - file: "sdd/specs/001-battleship-game/checkpoints/tasks-to-impl.yaml"
+          changes:
+            - line_start: 7
+              line_end: 11
+              change_type: "modified"
+              description: "Update completion totals to 17 of 17 tasks."
+        - file: "sdd/specs/001-battleship-game/batch-report.yaml"
+          changes:
+            - line_start: 1
+              line_end: 64
+              change_type: "modified"
+              description: "Record the final end-to-end quickstart validation results."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright quickstart validation"
+        passed: 54
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Against the SDD-local file in Chromium, verified title and labeled 10x10 boards; incomplete-start gating; manual preview, invalid out-of-bounds and overlap rejection, edge and touching placements; legal randomized fleet composition and concealment; human/computer hit and miss resolution, duplicate rejection, unique computer shots and turn handoff; sinking visuals and announcement; exact human/computer terminal messages, immediate stop, and postgame rejection; restart in setup/active/finished and Play again after both outcomes; responsive layout at 1280px, 900px, and 375px; and keyboard setup, targeting, and restart. Deterministic browser-state setup was used only to exercise known hit/sink/win/loss paths."
+    upstream_trace:
+      plan_item: "Phase 6: Full quickstart validation"
+      requirements: ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "FR-013", "FR-014", "FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-020", "FR-021", "FR-022", "FR-023", "FR-024", "SC-001", "SC-002", "SC-003", "SC-004", "SC-005", "SC-006", "SC-007", "SC-008"]
+      full_trace: "Feature spec and quickstart → Phase 6 full browser validation → T016 → SDD-local Battleship experience"
+
   - task_id: "T017"
     description: "Implement keyboard-operable controls and visible focus indicators."
     status: "completed"
@@ -575,11 +612,7 @@ tasks:
       requirements: ["Plan: keyboard access"]
       full_trace: "Plan keyboard-access decision → keyboard-operable controls and visible focus → T017 → sdd/battleship.html"
 
-pending_tasks:
-  - task_id: "T016"
-    description: "Validate all quickstart scenarios, including responsive layout and keyboard accessibility."
-    blocked_by: ["T015", "T017"]
-    priority: "P2"
+pending_tasks: []
 
 untracked_changes: []
 
@@ -663,6 +696,15 @@ traceability_chain:
     tasks: ["T015"]
     files:
       - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-CROSS-CUTTING-QUICKSTART"
+    requirement: "All functional requirements and success criteria"
+    plan_phase: "Phase 6"
+    plan_item: "Full quickstart validation"
+    tasks: ["T016"]
+    files:
+      - "sdd/battleship.html"
+      - "sdd/specs/001-battleship-game/quickstart.md"
     status: "complete"
   - chain_id: "TRACE-CROSS-CUTTING-KEYBOARD"
     requirement: "Keyboard access"

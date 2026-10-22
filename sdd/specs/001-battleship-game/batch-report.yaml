@@ -1,59 +1,51 @@
-batch_id: "T015"
-completed_tasks: ["T015"]
+batch_id: "T016"
+completed_tasks: ["T016"]
 blocked_tasks: []
 feature_task_inventory:
   source_tasks: "sdd/specs/001-battleship-game/tasks.md"
   total_tasks: 17
-  completed_tasks: 16
+  completed_tasks: 17
   in_progress_tasks: 0
-  pending_tasks:
-    - task_id: "T016"
-      blocked_by: ["T015", "T017"]
-  completion_percentage: 94.1
+  pending_tasks: []
+  completion_percentage: 100.0
 files_changed:
-  T015:
-    - file: "sdd/battleship.html"
-      change_type: "modified"
-      description: "Add a narrow-screen breakpoint below 56rem that stacks the boards while keeping them horizontally scrollable."
+  T016:
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T015 complete."
+      description: "Mark T016 complete after full quickstart validation."
     - file: "sdd/specs/001-battleship-game/checkpoints/tasks-to-impl.yaml"
       change_type: "modified"
-      description: "Record T015 implementation, viewport verification, and updated task counts."
+      description: "Record T016 validation evidence and update final task counts."
+    - file: "sdd/specs/001-battleship-game/batch-report.yaml"
+      change_type: "modified"
+      description: "Record T016 completion and quickstart validation results."
 upstream_artifacts_consumed:
-  T015:
+  T016:
+    - artifact: "sdd/specs/001-battleship-game/quickstart.md"
+      used_for: "End-to-end acceptance steps for setup, placement, gameplay, terminal outcomes, restart, responsive layout, and keyboard interaction."
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "FR-003 responsive side-by-side and stacked board requirement."
-    - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Responsive browser layout for two 10-by-10 boards."
-    - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Preserve existing game controls and avoid unnecessary dependencies."
+      used_for: "Functional requirements and measurable success criteria validated by the quickstart."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T015 scope and dependency on the completed T014 task."
+      used_for: "T016 scope and prerequisites T015 and T017."
 evidence_mapping:
-  T015:
-    - upstream: "spec.md#FR-003"
-      output: "sdd/battleship.html .board-layout media query"
-      evidence: "At 1280px and 900px the boards were side by side; at 375px they stacked. Setup controls remained accessible and board scrolling remained available."
+  T016:
+    - upstream: "quickstart.md#Acceptance validation"
+      output: "sdd/battleship.html"
+      evidence: "54 browser assertions passed across setup, gameplay, both endings, restart/replay, responsive viewports, and keyboard interaction."
 traceability:
-  - requirement: "FR-003"
-    plan_item: "Phase 6: responsive layout"
-    task: "T015"
-    files: ["sdd/battleship.html"]
-    status: "completed"
-  - requirement: "SC-008"
-    plan_item: "Phase 6: responsive layout"
-    task: "T015"
-    files: ["sdd/battleship.html"]
+  - requirement: "FR-001 through FR-024; SC-001 through SC-008"
+    plan_item: "Phase 6: Full quickstart validation"
+    task: "T016"
+    files: ["sdd/battleship.html", "sdd/specs/001-battleship-game/quickstart.md"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T015:
-    command: "Integrated browser Playwright viewport verification"
-    passed: 3
+  T016:
+    command: "Integrated browser Playwright quickstart validation"
+    passed: 54
     failed: 0
     skipped: 0
     failures: []
+    notes: "Validated in Chromium against file:///.../sdd/battleship.html. Viewports: 1280px, 900px, and 375px. Deterministic browser-state setup was used only to exercise known hit/sink/win/loss paths; normal UI interactions were used for setup, shots, restart, replay, and keyboard controls."
