@@ -27,6 +27,52 @@
         ]),
       });
 
+      const GAME_PHASE = Object.freeze({
+        setup: "setup",
+        playing: "playing",
+        finished: "finished",
+      });
+
+      function createShipState(definition) {
+        return {
+          id: definition.id,
+          type: definition.type,
+          length: definition.length,
+          cells: [],
+          hits: new Set(),
+        };
+      }
+
+      function createBoardState(participant) {
+        return {
+          participantId: participant.id,
+          rows: GAME_DEFINITION.board.rows,
+          columns: GAME_DEFINITION.board.columns,
+          ships: GAME_DEFINITION.fleet.map(createShipState),
+          shots: new Map(),
+        };
+      }
+
+      function createInitialGameState() {
+        return {
+          phase: GAME_PHASE.setup,
+          turn: null,
+          winner: null,
+          boards: Object.fromEntries(
+            GAME_DEFINITION.participants.map(participant => [
+              participant.id,
+              createBoardState(participant),
+            ]),
+          ),
+        };
+      }
+
+      function isShipSunk(ship) {
+        return ship.cells.length === ship.length && ship.hits.size === ship.length;
+      }
+
+      let gameState = createInitialGameState();
+
       function getShipCells(row, column, length, orientation) {
         if (orientation !== "horizontal" && orientation !== "vertical") {
           throw new RangeError("Orientation must be horizontal or vertical.");
