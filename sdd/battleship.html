@@ -184,6 +184,7 @@
           </fieldset>
         </div>
         <div class="placement-actions">
+          <button id="randomize-fleet" type="button">Randomize fleet</button>
           <button id="confirm-placement" type="button" disabled>Confirm placement</button>
           <p id="placement-status" role="status" aria-live="polite">
             Select a ship and choose a starting square to preview its placement.
@@ -467,6 +468,7 @@
 
       const humanBoard = document.getElementById("human-board");
       const shipPicker = document.getElementById("ship-picker");
+      const randomizeFleetButton = document.getElementById("randomize-fleet");
       const confirmPlacementButton = document.getElementById("confirm-placement");
       const placementStatus = document.getElementById("placement-status");
 
@@ -514,6 +516,28 @@
         confirmPlacementButton.disabled = placementPreview === null;
       }
 
+      function randomizeHumanFleet() {
+        if (gameState.phase !== GAME_PHASE.setup) return;
+
+        const randomizedFleet = createRandomFleet();
+        for (const randomizedShip of randomizedFleet) {
+          const ship = gameState.boards.human.ships.find(
+            item => item.id === randomizedShip.id,
+          );
+          if (!ship) {
+            throw new Error(`Randomized fleet contains an unknown ship: ${randomizedShip.id}`);
+          }
+          ship.cells = randomizedShip.cells.map(cell => ({ ...cell }));
+          ship.hits.clear();
+        }
+
+        placementPreview = null;
+        selectedShipId = null;
+        placementStatus.textContent = "Your complete fleet has been placed randomly.";
+        renderShipPicker(shipPicker);
+        updatePlacementControls();
+      }
+
       function previewPlacement(row, column) {
         if (gameState.phase !== GAME_PHASE.setup || !selectedShipId) return;
         const ship = gameState.boards.human.ships.find(item => item.id === selectedShipId);
@@ -556,6 +580,8 @@
         if (!cell) return;
         previewPlacement(Number(cell.dataset.row), Number(cell.dataset.column));
       });
+
+      randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
 
       confirmPlacementButton.addEventListener("click", () => {
         if (!placementPreview) return;

@@ -1,57 +1,59 @@
-batch_id: "T006"
-completed_tasks: ["T006"]
+batch_id: "T007"
+completed_tasks: ["T007"]
 blocked_tasks: []
 files_changed:
-  T006:
+  T007:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Add human fleet preview, validity feedback, and confirmation without changing existing ships on invalid proposals."
+      description: "Add a Randomize fleet control and assign generated legal placements to all human ships."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T006 complete."
+      description: "Mark T007 complete."
 upstream_artifacts_consumed:
-  T006:
+  T007:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "Human fleet placement acceptance scenarios and FR-006/FR-007."
+      used_for: "Required fleet composition and randomization behavior in FR-004, FR-005, and FR-008."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Implementation boundary and placement design."
+      used_for: "Implementation boundary and legal randomized fleet behavior."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Browser-only scope, specification fidelity, and verification principles."
+      used_for: "Browser-only scope, specification fidelity, and validation principles."
     - artifact: "sdd/specs/001-battleship-game/data-model.md"
-      used_for: "Placement Proposal invariants and invalid-confirmation behavior."
+      used_for: "Fleet composition and placement invariants."
     - artifact: "sdd/specs/001-battleship-game/quickstart.md"
-      used_for: "Placement validation scenarios, including boundary and touching cases."
-    - artifact: "sdd/specs/001-battleship-game/research.md"
-      used_for: "SDD-local implementation boundary and requirement-derived constraints."
+      used_for: "Randomized fleet acceptance checks."
+    - artifact: "sdd/specs/001-battleship-game/tasks.md"
+      used_for: "T007 task scope and sequencing after T006."
 evidence_mapping:
-  T006:
-    - upstream: "spec.md#FR-006"
-      output: "sdd/battleship.html placement preview and confirmation controls"
-      evidence: "Browser verification confirmed four proposed cells are previewed and confirmed."
-    - upstream: "spec.md#FR-007"
-      output: "sdd/battleship.html placement validation and rejection feedback"
-      evidence: "Browser verification confirmed out-of-bounds and overlapping proposals are rejected without changing placed cells."
-    - upstream: "data-model.md#Placement Proposal"
-      output: "sdd/battleship.html placementPreview state"
-      evidence: "Invalid proposals remain temporary and do not alter ship cells."
+  T007:
+    - upstream: "spec.md#FR-008"
+      output: "sdd/battleship.html Randomize fleet control"
+      evidence: "Browser test randomized a complete human fleet with the required five ship types and lengths."
+    - upstream: "spec.md#FR-004/FR-005"
+      output: "sdd/battleship.html human board ship state"
+      evidence: "Browser assertions verified all cells are in bounds, straight, and non-overlapping."
 traceability:
-  - requirement: "FR-006"
-    plan_item: "Design Outline: placement validation and interaction behavior"
-    task: "T006"
+  - requirement: "FR-004"
+    plan_item: "Design Outline: randomized fleets and placement validation"
+    task: "T007"
     files: ["sdd/battleship.html"]
     status: "completed"
-  - requirement: "FR-007"
-    plan_item: "Design Outline: placement validation and interaction behavior"
-    task: "T006"
+  - requirement: "FR-005"
+    plan_item: "Design Outline: randomized fleets and placement validation"
+    task: "T007"
+    files: ["sdd/battleship.html"]
+    status: "completed"
+  - requirement: "FR-008"
+    plan_item: "Design Outline: randomized fleets and placement validation"
+    task: "T007"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T006:
+  T007:
     command: "Integrated browser Playwright verification"
-    passed: 15
+    passed: 7
     failed: 0
     skipped: 0
     failures: []

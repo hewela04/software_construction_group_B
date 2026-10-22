@@ -5,10 +5,10 @@ metadata:
 
 summary:
   total_tasks: 17
-  completed_tasks: 6
+  completed_tasks: 7
   in_progress_tasks: 0
-  pending_tasks: 11
-  completion_percentage: 35.3
+  pending_tasks: 10
+  completion_percentage: 41.2
 
 tasks:
   - task_id: "T006"
@@ -50,11 +50,46 @@ tasks:
       requirements: ["FR-006", "FR-007"]
       full_trace: "FR-006/FR-007 → Design Outline placement behavior → T006 → sdd/battleship.html"
 
-pending_tasks:
   - task_id: "T007"
     description: "Implement human fleet randomization."
-    blocked_by: []
-    priority: "P1"
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 186
+              line_end: 187
+              change_type: "added"
+              description: "Add the Randomize fleet setup control."
+            - line_start: 519
+              line_end: 536
+              change_type: "added"
+              description: "Connect randomized legal fleet placements to the human board and clear prior preview state."
+            - line_start: 584
+              line_end: 584
+              change_type: "added"
+              description: "Wire the randomization control to the fleet generation flow."
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 55
+              line_end: 55
+              change_type: "modified"
+              description: "Mark T007 complete."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright verification"
+        passed: 7
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified fleet composition, legal straight in-bounds placements, no overlap, 14 rendered ship squares, and replacement of a prior manual placement."
+    upstream_trace:
+      plan_item: "Design Outline: randomized fleets and placement validation"
+      requirements: ["FR-004", "FR-005", "FR-008"]
+      full_trace: "FR-004/FR-005/FR-008 → Design Outline randomized fleet behavior → T007 → sdd/battleship.html"
+
+pending_tasks:
   - task_id: "T008"
     description: "Gate game start until the human fleet is complete."
     blocked_by: ["T007"]
@@ -104,6 +139,14 @@ traceability_chain:
     plan_phase: "Phase 3"
     plan_item: "Design Outline: placement validation and interaction behavior"
     tasks: ["T006"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-US1-RANDOM-FLEET"
+    requirement: "FR-004/FR-005/FR-008"
+    plan_phase: "Phase 3"
+    plan_item: "Design Outline: randomized fleets and placement validation"
+    tasks: ["T007"]
     files:
       - "sdd/battleship.html"
     status: "complete"
