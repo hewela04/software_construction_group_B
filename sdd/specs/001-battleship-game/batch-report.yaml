@@ -1,60 +1,45 @@
-batch_id: "T012"
-completed_tasks: ["T012"]
+batch_id: "T013"
+completed_tasks: ["T013"]
 blocked_tasks: []
 files_changed:
-  T012:
+  T013:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Identify and announce sunk ships, end the game with the exact required winner message, and block further shots after either outcome."
+      description: "Add a persistent Restart control and reset the match to manual setup with a newly randomized computer fleet."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T012 complete."
+      description: "Mark T013 complete."
+    - file: "sdd/specs/001-battleship-game/checkpoints/tasks-to-impl.yaml"
+      change_type: "modified"
+      description: "Record T013 implementation, verification, and updated task counts."
 upstream_artifacts_consumed:
-  T012:
+  T013:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "Sunk-ship detection, exact terminal messages, immediate game completion, and post-game shot rejection in FR-018, FR-020, and FR-021."
+      used_for: "FR-022 reset behavior and User Story 3 acceptance criteria."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Phase 4 task sequencing and client-side game scope."
+      used_for: "Phase 5 User Story 3 behavior and browser-only implementation constraints."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Specification fidelity and verification of both terminal outcomes."
-    - artifact: "sdd/specs/001-battleship-game/data-model.md"
-      used_for: "Sunk-ship definition and terminal game lifecycle invariants."
+      used_for: "Verify restart behavior against the specified game rules without adding dependencies."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T012 scope and dependency on T011."
+      used_for: "T013 scope and dependency on T012."
 evidence_mapping:
-  T012:
-    - upstream: "spec.md#FR-018"
-      output: "sdd/battleship.html sunk-ship status and board rendering"
-      evidence: "Browser verification confirmed sunk ships are announced and marked distinctly on their board."
-    - upstream: "spec.md#FR-020"
-      output: "sdd/battleship.html finishGame"
-      evidence: "Browser verification confirmed exact human-win and computer-win messages and winner state."
-    - upstream: "spec.md#FR-021"
-      output: "sdd/battleship.html turn guards and disabled target controls"
-      evidence: "Browser verification confirmed no further shots or computer replies occur after a terminal outcome."
+  T013:
+    - upstream: "spec.md#FR-022"
+      output: "sdd/battleship.html restartGame"
+      evidence: "Browser verification confirmed a clean manual setup and legal randomized computer fleet after setup, active-play, and finished-state restarts."
 traceability:
-  - requirement: "FR-018"
-    plan_item: "Phase 4: User Story 2 implementation"
-    task: "T012"
-    files: ["sdd/battleship.html"]
-    status: "completed"
-  - requirement: "FR-020"
-    plan_item: "Phase 4: User Story 2 implementation"
-    task: "T012"
-    files: ["sdd/battleship.html"]
-    status: "completed"
-  - requirement: "FR-021"
-    plan_item: "Phase 4: User Story 2 implementation"
-    task: "T012"
+  - requirement: "FR-022"
+    plan_item: "Phase 5: User Story 3 implementation"
+    task: "T013"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T012:
+  T013:
     command: "Integrated browser Playwright verification"
-    passed: 16
+    passed: 3
     failed: 0
     skipped: 0
     failures: []

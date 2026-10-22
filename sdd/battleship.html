@@ -213,6 +213,7 @@
       </section>
 
       <p id="turn-status" role="status" aria-live="polite"></p>
+      <p><button id="restart-game" type="button">Restart</button></p>
 
       <section class="board-layout" aria-label="Game boards">
         <section class="board-panel" aria-labelledby="human-board-heading">
@@ -497,6 +498,7 @@
       const setupControls = document.querySelector(".setup-controls");
       const turnStatus = document.getElementById("turn-status");
       const placementStatus = document.getElementById("placement-status");
+      const restartGameButton = document.getElementById("restart-game");
       let pendingHumanShot = null;
 
       function getPlacementMessage(cells) {
@@ -832,6 +834,30 @@
         updatePlacementControls();
       }
 
+      function restartGame() {
+        gameState = createInitialGameState();
+        for (const randomizedShip of createRandomFleet()) {
+          const ship = gameState.boards.computer.ships.find(
+            item => item.id === randomizedShip.id,
+          );
+          if (!ship) {
+            throw new Error(`Randomized fleet contains an unknown ship: ${randomizedShip.id}`);
+          }
+          ship.cells = randomizedShip.cells.map(cell => ({ ...cell }));
+        }
+
+        selectedShipId = GAME_DEFINITION.fleet[0].id;
+        placementPreview = null;
+        pendingHumanShot = null;
+        setupControls.hidden = false;
+        document.querySelector('input[name="orientation"][value="horizontal"]').checked = true;
+        placementStatus.textContent =
+          "Select a ship and choose a starting square to preview its placement.";
+        turnStatus.textContent = "";
+        renderShipPicker(shipPicker);
+        updatePlacementControls();
+      }
+
       function randomizeHumanFleet() {
         if (gameState.phase !== GAME_PHASE.setup) return;
 
@@ -910,6 +936,7 @@
 
       randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
       startGameButton.addEventListener("click", startGame);
+      restartGameButton.addEventListener("click", restartGame);
 
       confirmPlacementButton.addEventListener("click", () => {
         if (!placementPreview) return;

@@ -4,11 +4,11 @@ metadata:
   last_updated: "2026-10-22"
 
 summary:
-  total_tasks: 17
-  completed_tasks: 12
+  total_tasks: 21
+  completed_tasks: 13
   in_progress_tasks: 0
-  pending_tasks: 5
-  completion_percentage: 70.6
+  pending_tasks: 8
+  completion_percentage: 61.9
 
 tasks:
   - task_id: "T006"
@@ -300,11 +300,50 @@ tasks:
       requirements: ["FR-018", "FR-020", "FR-021"]
       full_trace: "FR-018/FR-020/FR-021 → Phase 4 sinking and game completion → T012 → sdd/battleship.html"
 
-pending_tasks:
   - task_id: "T013"
-    description: "Add Restart behavior."
-    blocked_by: ["T012"]
-    priority: "P2"
+    description: "Add Restart control and reset the match to a fresh setup."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 216
+              line_end: 216
+              change_type: "added"
+              description: "Add a persistent Restart control outside the setup panel."
+            - line_start: 501
+              line_end: 501
+              change_type: "added"
+              description: "Capture the Restart control for reset wiring."
+            - line_start: 837
+              line_end: 856
+              change_type: "added"
+              description: "Reset game state, create a legal computer fleet, clear announcements and preview state, and restore manual setup."
+            - line_start: 939
+              line_end: 939
+              change_type: "added"
+              description: "Wire Restart to the shared reset flow."
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 87
+              line_end: 87
+              change_type: "modified"
+              description: "Mark T013 complete."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright verification"
+        passed: 3
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified Restart from setup, active play, and a finished state; each reset clears human fleet, hit and shot state, turn, winner, preview, pending shot, and status while restoring setup controls and a legal 14-cell computer fleet."
+    upstream_trace:
+      plan_item: "Phase 5: User Story 3 implementation"
+      requirements: ["FR-022"]
+      full_trace: "FR-022 → Phase 5 restart behavior → T013 → sdd/battleship.html"
+
+pending_tasks:
   - task_id: "T014"
     description: "Add Play again behavior."
     blocked_by: ["T013"]
@@ -320,6 +359,22 @@ pending_tasks:
   - task_id: "T017"
     description: "Implement keyboard-operable controls and visible focus indicators."
     blocked_by: []
+    priority: "P2"
+  - task_id: "T018"
+    description: "Implement Restart behavior."
+    blocked_by: ["T012"]
+    priority: "P2"
+  - task_id: "T019"
+    description: "Implement Play again behavior."
+    blocked_by: ["T013"]
+    priority: "P2"
+  - task_id: "T020"
+    description: "Ensure responsive board layout."
+    blocked_by: []
+    priority: "P2"
+  - task_id: "T021"
+    description: "Validate all quickstart scenarios."
+    blocked_by: ["T018", "T019", "T020"]
     priority: "P2"
 
 untracked_changes: []
@@ -378,6 +433,14 @@ traceability_chain:
     plan_phase: "Phase 4"
     plan_item: "Phase 4: User Story 2 implementation"
     tasks: ["T012"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-US3-RESTART"
+    requirement: "FR-022"
+    plan_phase: "Phase 5"
+    plan_item: "Phase 5: User Story 3 implementation"
+    tasks: ["T013"]
     files:
       - "sdd/battleship.html"
     status: "complete"

@@ -84,7 +84,7 @@ file, so they are ordered and not marked parallelizable.
 
 ### Implementation
 
-- [ ] T013 [US3] Add a Restart control available during setup, active play, and after a completed game in `sdd/battleship.html`; reset shots, hit marks, announcements, and outcome, return to manual human fleet setup, and create a new legal randomized computer fleet.
+- [x] T013 [US3] Add a Restart control available during setup, active play, and after a completed game in `sdd/battleship.html`; reset shots, hit marks, announcements, and outcome, return to manual human fleet setup, and create a new legal randomized computer fleet.
 - [ ] T014 [US3] Add a Play again control after a win or loss in `sdd/battleship.html`; make it produce the same fresh setup state as Restart, including a cleared human fleet and a new legal computer fleet.
 
 **Checkpoint**: Restart and Play again both return the game to a clean, playable setup without retaining results from the previous match.
@@ -177,3 +177,10 @@ US3: No parallel implementation tasks; complete T013, then T014
 ## Phase 7: Convergence
 
 - [ ] T017 Implement keyboard-operable board and game controls with a visible focus indicator in `sdd/battleship.html` per plan: keyboard access (missing).
+
+## Phase 8: Convergence
+
+- [ ] T018 Implement and verify the Restart flow from setup, active play, and finished play; clear prior shots, results, and human ships, and create a new legal randomized computer fleet per FR-022 (missing).
+- [ ] T019 Implement and verify Play again after either terminal outcome, returning to the same fresh setup state as Restart per FR-023 (missing).
+- [ ] T020 Make the two-board layout stack at narrow viewport widths while preserving access to controls per FR-003 and SC-008 (partial).
+- [ ] T021 Complete and record the quickstart end-to-end scenarios, including restart and play again, after the behavior is implemented per SC-006, SC-007, and Constitution III (partial).
