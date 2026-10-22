@@ -26,6 +26,116 @@
           Object.freeze({ id: "submarine-2", type: "submarine", length: 2 }),
         ]),
       });
+
+      function getShipCells(row, column, length, orientation) {
+        if (orientation !== "horizontal" && orientation !== "vertical") {
+          throw new RangeError("Orientation must be horizontal or vertical.");
+        }
+        if (!Number.isInteger(row) || !Number.isInteger(column) ||
+            !Number.isInteger(length) || length < 1) {
+          throw new RangeError("Ship coordinates and length must be integers.");
+        }
+
+        return Array.from({ length }, (_, index) => ({
+          row: orientation === "vertical" ? row + index : row,
+          column: orientation === "horizontal" ? column + index : column,
+        }));
+      }
+
+      function isPlacementValid(ships, cells) {
+        if (!Array.isArray(ships) || !Array.isArray(cells) || cells.length === 0) {
+          return false;
+        }
+
+        const proposedKeys = new Set();
+        for (const cell of cells) {
+          if (!Number.isInteger(cell?.row) || !Number.isInteger(cell?.column) ||
+              cell.row < 0 || cell.row >= GAME_DEFINITION.board.rows ||
+              cell.column < 0 || cell.column >= GAME_DEFINITION.board.columns) {
+            return false;
+          }
+          const key = `${cell.row},${cell.column}`;
+          if (proposedKeys.has(key)) return false;
+          proposedKeys.add(key);
+        }
+
+        const sameRow = cells.every(cell => cell.row === cells[0].row);
+        const sameColumn = cells.every(cell => cell.column === cells[0].column);
+        if (!sameRow && !sameColumn) return false;
+
+        const lineCoordinates = cells
+          .map(cell => sameRow ? cell.column : cell.row)
+          .sort((a, b) => a - b);
+        if (lineCoordinates.some((coordinate, index) =>
+          index > 0 && coordinate !== lineCoordinates[index - 1] + 1)) {
+          return false;
+        }
+
+        const occupiedKeys = new Set();
+        for (const ship of ships) {
+          if (!Array.isArray(ship.cells)) return false;
+          for (const cell of ship.cells) {
+            if (!Number.isInteger(cell?.row) || !Number.isInteger(cell?.column) ||
+                cell.row < 0 || cell.row >= GAME_DEFINITION.board.rows ||
+                cell.column < 0 || cell.column >= GAME_DEFINITION.board.columns) {
+              return false;
+            }
+            occupiedKeys.add(`${cell.row},${cell.column}`);
+          }
+        }
+
+        return [...proposedKeys].every(key => !occupiedKeys.has(key));
+      }
+
+      function shuffleInPlace(items, random) {
+        for (let index = items.length - 1; index > 0; index--) {
+          const swapIndex = Math.floor(random() * (index + 1));
+          [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
+        }
+        return items;
+      }
+
+      function createRandomFleet(random = Math.random) {
+        if (typeof random !== "function") {
+          throw new TypeError("Random source must be a function.");
+        }
+
+        const candidatePlacements = GAME_DEFINITION.fleet.map(ship => {
+          const candidates = [];
+          for (const orientation of ["horizontal", "vertical"]) {
+            for (let row = 0; row < GAME_DEFINITION.board.rows; row++) {
+              for (let column = 0; column < GAME_DEFINITION.board.columns; column++) {
+                const cells = getShipCells(row, column, ship.length, orientation);
+                if (cells.every(cell =>
+                  cell.row < GAME_DEFINITION.board.rows &&
+                  cell.column < GAME_DEFINITION.board.columns)) {
+                  candidates.push(cells);
+                }
+              }
+            }
+          }
+          return shuffleInPlace(candidates, random);
+        });
+
+        function placeNextShip(index, placedShips) {
+          if (index === GAME_DEFINITION.fleet.length) return placedShips;
+
+          const definition = GAME_DEFINITION.fleet[index];
+          for (const cells of candidatePlacements[index]) {
+            if (!isPlacementValid(placedShips, cells)) continue;
+            const ship = { ...definition, cells };
+            const completeFleet = placeNextShip(index + 1, [...placedShips, ship]);
+            if (completeFleet) return completeFleet;
+          }
+          return null;
+        }
+
+        const fleet = placeNextShip(0, []);
+        if (!fleet) {
+          throw new Error("Could not generate a legal fleet for the defined ships.");
+        }
+        return fleet;
+      }
     </script>
   </body>
 </html>
