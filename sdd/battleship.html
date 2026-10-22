@@ -119,6 +119,10 @@
         background: #efaaa5;
       }
 
+      .board-cell.target-pending {
+        background: #f2d77e;
+      }
+
       .board-cell:focus-visible,
       button:focus-visible,
       input:focus-visible {
@@ -470,6 +474,7 @@
       }
 
       const humanBoard = document.getElementById("human-board");
+      const computerBoard = document.getElementById("computer-board");
       const shipPicker = document.getElementById("ship-picker");
       const randomizeFleetButton = document.getElementById("randomize-fleet");
       const confirmPlacementButton = document.getElementById("confirm-placement");
@@ -477,6 +482,7 @@
       const setupControls = document.querySelector(".setup-controls");
       const turnStatus = document.getElementById("turn-status");
       const placementStatus = document.getElementById("placement-status");
+      let pendingHumanShot = null;
 
       function getPlacementMessage(cells) {
         if (cells.some(cell =>
@@ -519,10 +525,70 @@
 
       function updatePlacementControls() {
         updateHumanBoard();
+        updateComputerBoard();
         confirmPlacementButton.disabled = placementPreview === null;
         startGameButton.disabled =
           gameState.phase !== GAME_PHASE.setup ||
           !isFleetLegal(gameState.boards.human.ships);
+      }
+
+      function updateComputerBoard() {
+        const computerShots = gameState.boards.computer.shots;
+        const humanCanTarget =
+          gameState.phase === GAME_PHASE.playing &&
+          gameState.turn === "human" &&
+          pendingHumanShot === null;
+
+        computerBoard.querySelectorAll(".board-cell").forEach(cell => {
+          const row = Number(cell.dataset.row);
+          const column = Number(cell.dataset.column);
+          const key = `${row},${column}`;
+          const isPending = pendingHumanShot?.key === key;
+          const hasBeenTargeted = computerShots.has(key);
+          cell.disabled = !humanCanTarget || hasBeenTargeted;
+          cell.classList.toggle("target-pending", isPending);
+          cell.setAttribute("aria-pressed", String(hasBeenTargeted));
+        });
+      }
+
+      function targetComputerSquare(cell) {
+        const row = Number(cell.dataset.row);
+        const column = Number(cell.dataset.column);
+        const key = `${row},${column}`;
+        const isCoordinateValid =
+          Number.isInteger(row) && Number.isInteger(column) &&
+          row >= 0 && row < GAME_DEFINITION.board.rows &&
+          column >= 0 && column < GAME_DEFINITION.board.columns;
+
+        if (gameState.phase !== GAME_PHASE.playing || gameState.turn !== "human") {
+          turnStatus.textContent = "Wait for your turn to target the computer board.";
+          return;
+        }
+        if (!isCoordinateValid) {
+          turnStatus.textContent = "That is not a valid board coordinate.";
+          return;
+        }
+        if (gameState.boards.computer.shots.has(key)) {
+          turnStatus.textContent = "That square has already been targeted.";
+          return;
+        }
+        if (pendingHumanShot !== null) {
+          turnStatus.textContent = "Your selected shot is being resolved.";
+          return;
+        }
+
+        pendingHumanShot = { row, column, key };
+        gameState.boards.computer.shots.set(key, {
+          attacker: "human",
+          result: "pending",
+        });
+        const coordinate =
+          `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
+        turnStatus.textContent = `Target selected: ${coordinate}.`;
+        updateComputerBoard();
+        computerBoard.dispatchEvent(new CustomEvent("human-shot", {
+          detail: { row, column },
+        }));
       }
 
       function isFleetLegal(ships) {
@@ -573,7 +639,8 @@
         gameState.winner = null;
         placementPreview = null;
         setupControls.hidden = true;
-        turnStatus.textContent = "Your turn.";
+        turnStatus.textContent =
+          "Your turn. Select an unshot square on the computer board.";
         updatePlacementControls();
       }
 
@@ -642,6 +709,12 @@
         previewPlacement(Number(cell.dataset.row), Number(cell.dataset.column));
       });
 
+      computerBoard.addEventListener("click", event => {
+        const cell = event.target.closest(".board-cell");
+        if (!cell) return;
+        targetComputerSquare(cell);
+      });
+
       randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
       startGameButton.addEventListener("click", startGame);
 
@@ -671,7 +744,7 @@
       });
 
       renderBoard(humanBoard, "Your board", true);
-      renderBoard(document.getElementById("computer-board"), "Computer board");
+      renderBoard(computerBoard, "Computer board", true);
       renderShipPicker(shipPicker);
       updatePlacementControls();
     </script>

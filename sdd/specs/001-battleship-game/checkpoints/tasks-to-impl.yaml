@@ -5,10 +5,10 @@ metadata:
 
 summary:
   total_tasks: 17
-  completed_tasks: 8
+  completed_tasks: 9
   in_progress_tasks: 0
-  pending_tasks: 9
-  completion_percentage: 47.1
+  pending_tasks: 8
+  completion_percentage: 52.9
 
 tasks:
   - task_id: "T006"
@@ -124,11 +124,58 @@ tasks:
       requirements: ["FR-004", "FR-005", "FR-009", "FR-010", "FR-011", "FR-012"]
       full_trace: "FR-009/FR-010/FR-011/FR-012 → Phase 3 setup transition → T008 → sdd/battleship.html"
 
-pending_tasks:
   - task_id: "T009"
     description: "Implement turn identification and human targeting."
-    blocked_by: ["T008"]
-    priority: "P1"
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 122
+              line_end: 124
+              change_type: "added"
+              description: "Style the pending target marker."
+            - line_start: 477
+              line_end: 485
+              change_type: "modified"
+              description: "Track the computer board and pending human shot."
+            - line_start: 535
+              line_end: 583
+              change_type: "added"
+              description: "Enable unshot targets only during the human turn, reject duplicate/out-of-turn targets, record one pending shot, and dispatch its coordinate."
+            - line_start: 643
+              line_end: 644
+              change_type: "modified"
+              description: "Identify the human turn and explain how to target."
+            - line_start: 712
+              line_end: 716
+              change_type: "added"
+              description: "Wire computer-board interactions to guarded human targeting."
+            - line_start: 747
+              line_end: 747
+              change_type: "modified"
+              description: "Render the computer board with keyboard-operable target controls."
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 66
+              line_end: 66
+              change_type: "modified"
+              description: "Mark T009 complete."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright verification"
+        passed: 9
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified 100 computer-board target buttons are disabled in setup, enabled for an active human turn, and one target is recorded/dispatched at a time; repeated and out-of-turn target attempts are rejected."
+    upstream_trace:
+      plan_item: "Phase 4: User Story 2 implementation"
+      requirements: ["FR-012", "FR-013", "FR-014"]
+      full_trace: "FR-012/FR-013/FR-014 → Phase 4 human targeting → T009 → sdd/battleship.html"
+
+pending_tasks:
   - task_id: "T010"
     description: "Resolve shots and show hit/miss feedback."
     blocked_by: ["T009"]
@@ -186,6 +233,14 @@ traceability_chain:
     plan_phase: "Phase 3"
     plan_item: "Phase 3: User Story 1 implementation"
     tasks: ["T008"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-US2-HUMAN-TARGETING"
+    requirement: "FR-012/FR-013/FR-014"
+    plan_phase: "Phase 4"
+    plan_item: "Phase 4: User Story 2 implementation"
+    tasks: ["T009"]
     files:
       - "sdd/battleship.html"
     status: "complete"
