@@ -30,7 +30,7 @@ file, so they are ordered and not marked parallelizable.
 
 **Purpose**: Establish the isolated SDD-local browser application target.
 
-- [ ] T001 Create a new standalone HTML document at `sdd/battleship.html` with a valid document structure, UTF-8 and responsive viewport metadata, page title “Battleship”, and no imports or references to files outside `sdd/`.
+- [x] T001 Create a new standalone HTML document at `sdd/battleship.html` with a valid document structure, UTF-8 and responsive viewport metadata, page title “Battleship”, and no imports or references to files outside `sdd/`.
 
 ## Phase 2: Foundational
 
@@ -173,3 +173,7 @@ US3: No parallel implementation tasks; complete T013, then T014
   specification does not request TDD or require a particular test framework.
 - Keep every implementation and validation action within the SDD project and
   derive behavior from its constitution and specification.
+
+## Phase 7: Convergence
+
+- [ ] T017 Implement keyboard-operable board and game controls with a visible focus indicator in `sdd/battleship.html` per plan: keyboard access (missing).
