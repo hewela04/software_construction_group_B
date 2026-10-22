@@ -133,6 +133,11 @@
         color: #fff;
       }
 
+      .board-cell.ship-sunk {
+        box-shadow: inset 0 0 0 3px #17324a;
+        font-weight: 800;
+      }
+
       .board-cell:focus-visible,
       button:focus-visible,
       input:focus-visible {
@@ -509,16 +514,16 @@
         const previewKeys = new Set(
           placementPreview?.cells.map(cell => `${cell.row},${cell.column}`) ?? [],
         );
-        const occupiedKeys = new Set(
-          humanShips.flatMap(ship => ship.cells.map(cell => `${cell.row},${cell.column}`)),
-        );
-
         humanBoard.querySelectorAll(".board-cell").forEach(cell => {
           const row = Number(cell.dataset.row);
           const column = Number(cell.dataset.column);
           const key = `${row},${column}`;
           const isPreviewCell = previewKeys.has(key);
-          const isOccupied = occupiedKeys.has(key);
+          const ship = humanShips.find(item =>
+            item.cells.some(shipCell => shipCell.row === row && shipCell.column === column),
+          );
+          const isOccupied = ship !== undefined;
+          const isSunk = ship ? isShipSunk(ship) : false;
           const shot = humanShots.get(key);
           const coordinate =
             `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
@@ -534,6 +539,7 @@
           );
           cell.classList.toggle("shot-hit", shot?.result === "hit");
           cell.classList.toggle("shot-miss", shot?.result === "miss");
+          cell.classList.toggle("ship-sunk", isSunk);
           cell.setAttribute(
             "aria-pressed",
             String(isPreviewCell || isOccupied || shot !== undefined),
@@ -546,7 +552,7 @@
                 : shot?.result === "miss"
                   ? ", miss"
                   : ""
-            }`,
+            }${isSunk ? ", sunk" : ""}`,
           );
           cell.textContent = shot?.result === "hit"
             ? "X"
@@ -583,12 +589,17 @@
           const isPending = pendingHumanShot?.key === key;
           const shot = computerShots.get(key);
           const hasBeenTargeted = shot !== undefined;
+          const hitShip = gameState.boards.computer.ships.find(ship =>
+            ship.cells.some(shipCell => shipCell.row === row && shipCell.column === column),
+          );
+          const isSunk = hitShip ? isShipSunk(hitShip) : false;
           const coordinate =
             `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
           cell.disabled = !humanCanTarget || hasBeenTargeted;
           cell.classList.toggle("target-pending", isPending);
           cell.classList.toggle("shot-hit", shot?.result === "hit");
           cell.classList.toggle("shot-miss", shot?.result === "miss");
+          cell.classList.toggle("ship-sunk", isSunk);
           cell.setAttribute("aria-pressed", String(hasBeenTargeted));
           cell.setAttribute(
             "aria-label",
@@ -596,7 +607,7 @@
               ? ", hit"
               : shot?.result === "miss"
                 ? ", miss"
-                : ""}`,
+                : ""}${isSunk ? ", sunk" : ""}`,
           );
           cell.textContent = shot?.result === "hit"
             ? "X"
@@ -604,6 +615,22 @@
               ? "O"
               : "";
         });
+      }
+
+      function getSunkMessage(ship, owner) {
+        const shipName = ship.type[0].toUpperCase() + ship.type.slice(1);
+        return owner === "computer"
+          ? `Computer ${shipName.toLowerCase()} sunk.`
+          : `Your ${shipName.toLowerCase()} was sunk.`;
+      }
+
+      function finishGame(winner, message) {
+        gameState.phase = GAME_PHASE.finished;
+        gameState.turn = null;
+        gameState.winner = winner;
+        pendingHumanShot = null;
+        turnStatus.textContent = message;
+        updatePlacementControls();
       }
 
       function resolveHumanShot(event) {
@@ -629,15 +656,27 @@
           result,
         });
         pendingHumanShot = null;
+        const shipWasSunk = hitShip !== undefined && isShipSunk(hitShip);
+        const playerWon = gameState.boards.computer.ships.every(isShipSunk);
+        if (playerWon) {
+          finishGame("human", "Congrats, you won!");
+          computerBoard.dispatchEvent(new CustomEvent("human-shot-resolved", {
+            detail: { row, column, result, terminal: true },
+          }));
+          return;
+        }
+
         gameState.turn = "computer";
 
         const coordinate =
           `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
         turnStatus.textContent =
-          `${result === "hit" ? "Hit" : "Miss"} at ${coordinate}.`;
+          `${result === "hit" ? "Hit" : "Miss"} at ${coordinate}.${shipWasSunk
+            ? ` ${getSunkMessage(hitShip, "computer")}`
+            : ""}`;
         updateComputerBoard();
         computerBoard.dispatchEvent(new CustomEvent("human-shot-resolved", {
-          detail: { row, column, result },
+          detail: { row, column, result, terminal: false },
         }));
       }
 
@@ -649,6 +688,7 @@
 
         if (gameState.boards.computer.ships.every(isShipSunk)) return;
 
+        const humanAnnouncement = turnStatus.textContent;
         const humanBoardState = gameState.boards.human;
         const unshotCoordinates = [];
         for (let row = 0; row < humanBoardState.rows; row++) {
@@ -675,15 +715,27 @@
           attacker: "computer",
           result,
         });
+        const shipWasSunk = hitShip !== undefined && isShipSunk(hitShip);
+        const computerWon = humanBoardState.ships.every(isShipSunk);
+        if (computerWon) {
+          finishGame("computer", "Game over! Computer wins.");
+          humanBoard.dispatchEvent(new CustomEvent("computer-shot-resolved", {
+            detail: { row, column, result, terminal: true },
+          }));
+          return;
+        }
+
         gameState.turn = "human";
 
         const coordinate =
           `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
         turnStatus.textContent =
-          `Computer ${result} at ${coordinate}. Your turn.`;
+          `${humanAnnouncement} Computer ${result} at ${coordinate}.${shipWasSunk
+            ? ` ${getSunkMessage(hitShip, "human")}`
+            : ""} Your turn.`;
         updatePlacementControls();
         humanBoard.dispatchEvent(new CustomEvent("computer-shot-resolved", {
-          detail: { row, column, result },
+          detail: { row, column, result, terminal: false },
         }));
       }
 

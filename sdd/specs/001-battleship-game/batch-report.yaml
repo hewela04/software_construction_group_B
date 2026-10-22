@@ -1,52 +1,60 @@
-batch_id: "T011"
-completed_tasks: ["T011"]
+batch_id: "T012"
+completed_tasks: ["T012"]
 blocked_tasks: []
 files_changed:
-  T011:
+  T012:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Implement computer turns that choose unshot human-board coordinates, resolve and display hit/miss results, and return the turn to the human."
+      description: "Identify and announce sunk ships, end the game with the exact required winner message, and block further shots after either outcome."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T011 complete."
+      description: "Mark T012 complete."
 upstream_artifacts_consumed:
-  T011:
+  T012:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "Computer random targeting, unique coordinates, hit/miss reporting, and no reply after a final human hit in FR-012, FR-017, and FR-020."
+      used_for: "Sunk-ship detection, exact terminal messages, immediate game completion, and post-game shot rejection in FR-018, FR-020, and FR-021."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Phase 4 sequence and client-side game implementation boundary."
+      used_for: "Phase 4 task sequencing and client-side game scope."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Specification fidelity and game-rule verification."
+      used_for: "Specification fidelity and verification of both terminal outcomes."
     - artifact: "sdd/specs/001-battleship-game/data-model.md"
-      used_for: "Unique-target, shot-result, and ship-hit invariants."
+      used_for: "Sunk-ship definition and terminal game lifecycle invariants."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T011 scope and dependency on T010."
+      used_for: "T012 scope and dependency on T011."
 evidence_mapping:
-  T011:
-    - upstream: "spec.md#FR-017"
-      output: "sdd/battleship.html takeComputerTurn"
-      evidence: "Browser tests verified the computer selects a fresh unshot coordinate and records correct hit and miss outcomes."
-    - upstream: "spec.md#FR-012"
-      output: "sdd/battleship.html turn state and turn-status announcement"
-      evidence: "Browser tests verified the computer reports its result and returns the turn to the human."
+  T012:
+    - upstream: "spec.md#FR-018"
+      output: "sdd/battleship.html sunk-ship status and board rendering"
+      evidence: "Browser verification confirmed sunk ships are announced and marked distinctly on their board."
+    - upstream: "spec.md#FR-020"
+      output: "sdd/battleship.html finishGame"
+      evidence: "Browser verification confirmed exact human-win and computer-win messages and winner state."
+    - upstream: "spec.md#FR-021"
+      output: "sdd/battleship.html turn guards and disabled target controls"
+      evidence: "Browser verification confirmed no further shots or computer replies occur after a terminal outcome."
 traceability:
-  - requirement: "FR-012"
+  - requirement: "FR-018"
     plan_item: "Phase 4: User Story 2 implementation"
-    task: "T011"
+    task: "T012"
     files: ["sdd/battleship.html"]
     status: "completed"
-  - requirement: "FR-017"
+  - requirement: "FR-020"
     plan_item: "Phase 4: User Story 2 implementation"
-    task: "T011"
+    task: "T012"
+    files: ["sdd/battleship.html"]
+    status: "completed"
+  - requirement: "FR-021"
+    plan_item: "Phase 4: User Story 2 implementation"
+    task: "T012"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T011:
+  T012:
     command: "Integrated browser Playwright verification"
-    passed: 15
+    passed: 16
     failed: 0
     skipped: 0
     failures: []
