@@ -1,56 +1,59 @@
-batch_id: "T014"
-completed_tasks: ["T014"]
+batch_id: "T015"
+completed_tasks: ["T015"]
 blocked_tasks: []
 feature_task_inventory:
   source_tasks: "sdd/specs/001-battleship-game/tasks.md"
   total_tasks: 17
-  completed_tasks: 15
+  completed_tasks: 16
   in_progress_tasks: 0
   pending_tasks:
-    - task_id: "T015"
-      blocked_by: ["T014"]
     - task_id: "T016"
       blocked_by: ["T015", "T017"]
-  completion_percentage: 88.2
+  completion_percentage: 94.1
 files_changed:
-  T014:
+  T015:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Add Play again after terminal outcomes and reuse the Restart flow to return to fresh setup."
+      description: "Add a narrow-screen breakpoint below 56rem that stacks the boards while keeping them horizontally scrollable."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T014 complete."
+      description: "Mark T015 complete."
     - file: "sdd/specs/001-battleship-game/checkpoints/tasks-to-impl.yaml"
       change_type: "modified"
-      description: "Record T014 implementation, verification, and updated task counts."
+      description: "Record T015 implementation, viewport verification, and updated task counts."
 upstream_artifacts_consumed:
-  T014:
+  T015:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "FR-023 and User Story 3 acceptance criterion for Play again after a win or loss."
+      used_for: "FR-003 responsive side-by-side and stacked board requirement."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Phase 5 User Story 3 behavior and browser-only implementation constraints."
+      used_for: "Responsive browser layout for two 10-by-10 boards."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Verify replay preserves the game rules and introduces no dependencies."
+      used_for: "Preserve existing game controls and avoid unnecessary dependencies."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T014 scope and dependency on the completed T013 restart flow."
+      used_for: "T015 scope and dependency on the completed T014 task."
 evidence_mapping:
-  T014:
-    - upstream: "spec.md#FR-023"
-      output: "sdd/battleship.html playAgain"
-      evidence: "Browser verification confirmed the control is terminal-only and resets both human-win and computer-win results to fresh setup."
+  T015:
+    - upstream: "spec.md#FR-003"
+      output: "sdd/battleship.html .board-layout media query"
+      evidence: "At 1280px and 900px the boards were side by side; at 375px they stacked. Setup controls remained accessible and board scrolling remained available."
 traceability:
-  - requirement: "FR-023"
-    plan_item: "Phase 5: User Story 3 implementation"
-    task: "T014"
+  - requirement: "FR-003"
+    plan_item: "Phase 6: responsive layout"
+    task: "T015"
+    files: ["sdd/battleship.html"]
+    status: "completed"
+  - requirement: "SC-008"
+    plan_item: "Phase 6: responsive layout"
+    task: "T015"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T014:
-    command: "Integrated browser Playwright verification"
-    passed: 4
+  T015:
+    command: "Integrated browser Playwright viewport verification"
+    passed: 3
     failed: 0
     skipped: 0
     failures: []

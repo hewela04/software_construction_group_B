@@ -5,10 +5,10 @@ metadata:
 
 summary:
   total_tasks: 17
-  completed_tasks: 15
+  completed_tasks: 16
   in_progress_tasks: 0
-  pending_tasks: 2
-  completion_percentage: 88.2
+  pending_tasks: 1
+  completion_percentage: 94.1
 
 tasks:
   - task_id: "T001"
@@ -515,6 +515,37 @@ tasks:
       requirements: ["FR-023"]
       full_trace: "FR-023 → Phase 5 play-again behavior → T014 → sdd/battleship.html"
 
+  - task_id: "T015"
+    description: "Ensure responsive side-by-side and stacked board layouts."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 61
+              line_end: 75
+              change_type: "added"
+              description: "Stack boards below 56rem and retain a usable board width with horizontal scrolling on narrow screens."
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 96
+              line_end: 96
+              change_type: "modified"
+              description: "Mark T015 complete."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright viewport verification"
+        passed: 3
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "At 1280px and 900px, both boards were side by side; at 375px, they stacked. Setup controls remained visible and each board retained horizontal scrolling at every viewport."
+    upstream_trace:
+      plan_item: "Design Outline: responsive board layout"
+      requirements: ["FR-003", "SC-008"]
+      full_trace: "FR-003/SC-008 → responsive board layout → T015 → sdd/battleship.html"
+
   - task_id: "T017"
     description: "Implement keyboard-operable controls and visible focus indicators."
     status: "completed"
@@ -545,10 +576,6 @@ tasks:
       full_trace: "Plan keyboard-access decision → keyboard-operable controls and visible focus → T017 → sdd/battleship.html"
 
 pending_tasks:
-  - task_id: "T015"
-    description: "Ensure responsive board layout."
-    blocked_by: ["T014"]
-    priority: "P2"
   - task_id: "T016"
     description: "Validate all quickstart scenarios, including responsive layout and keyboard accessibility."
     blocked_by: ["T015", "T017"]
@@ -626,6 +653,14 @@ traceability_chain:
     plan_phase: "Phase 5"
     plan_item: "Phase 5: User Story 3 implementation"
     tasks: ["T014"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-CROSS-CUTTING-RESPONSIVE"
+    requirement: "FR-003/SC-008"
+    plan_phase: "Phase 6"
+    plan_item: "Design Outline: responsive board layout"
+    tasks: ["T015"]
     files:
       - "sdd/battleship.html"
     status: "complete"
