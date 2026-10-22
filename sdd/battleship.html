@@ -6,5 +6,26 @@
     <title>Battleship</title>
   </head>
   <body>
+    <script>
+      const GAME_DEFINITION = Object.freeze({
+        board: Object.freeze({
+          rows: 10,
+          columns: 10,
+          rowLabels: Object.freeze(Array.from({ length: 10 }, (_, index) => index + 1)),
+          columnLabels: Object.freeze("ABCDEFGHIJ".split("")),
+        }),
+        participants: Object.freeze([
+          Object.freeze({ id: "human", name: "Human" }),
+          Object.freeze({ id: "computer", name: "Computer" }),
+        ]),
+        fleet: Object.freeze([
+          Object.freeze({ id: "battleship", type: "battleship", length: 4 }),
+          Object.freeze({ id: "cruiser", type: "cruiser", length: 3 }),
+          Object.freeze({ id: "destroyer", type: "destroyer", length: 3 }),
+          Object.freeze({ id: "submarine-1", type: "submarine", length: 2 }),
+          Object.freeze({ id: "submarine-2", type: "submarine", length: 2 }),
+        ]),
+      });
+    </script>
   </body>
 </html>

@@ -36,7 +36,7 @@ file, so they are ordered and not marked parallelizable.
 
 **Purpose**: Define the shared game-domain rules and state required by all user stories.
 
-- [ ] T002 Define the game data and coordinate rules in `sdd/battleship.html`: two 10-by-10 boards with columns A-J and rows 1-10; human and computer participants; and the five required ships per fleet with lengths 4, 3, 3, 2, and 2.
+- [x] T002 Define the game data and coordinate rules in `sdd/battleship.html`: two 10-by-10 boards with columns A-J and rows 1-10; human and computer participants; and the five required ships per fleet with lengths 4, 3, 3, 2, and 2.
 - [ ] T003 Implement shared fleet-placement validation and randomized fleet creation in `sdd/battleship.html`; require straight horizontal or vertical ships that remain in bounds and do not overlap, while allowing ships to touch.
 - [ ] T004 Define match lifecycle state in `sdd/battleship.html` for setup, active play, and finished play, including participant boards, current turn, shot history, ship hit/sunk state, and winner; keep match data in browser memory without a backend or database.
 
