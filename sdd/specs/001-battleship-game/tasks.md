@@ -94,7 +94,7 @@ file, so they are ordered and not marked parallelizable.
 **Purpose**: Verify the full SDD-local experience against the specification.
 
 - [ ] T015 Ensure the boards in `sdd/battleship.html` display side by side when space permits and can stack on smaller screens without losing access to game controls.
-- [ ] T016 Validate the SDD-local game by completing the setup, turn/shot, sinking, win, loss, and restart scenarios in `sdd/specs/001-battleship-game/quickstart.md`; record any failures and resolve specification deviations in `sdd/battleship.html`.
+- [ ] T016 Validate the SDD-local game against `sdd/specs/001-battleship-game/quickstart.md`, including setup, turns/shots, sinking, win/loss, restart/play again, responsive layout, and keyboard accessibility; record any failures and resolve specification deviations in `sdd/battleship.html`.
 
 ## Dependencies & Execution Order
 
@@ -125,7 +125,12 @@ T005 -> T006 -> T007 -> T008
 T009 -> T010 -> T011 -> T012
                           |
                           v
-T013 -> T014 -> T015 -> T016
+T013 -> T014 -> T015 --+
+                        +-> T016
+T017 ------------------+
+
+T017 is an independent cross-cutting keyboard-access task; T016 depends on it
+for final quickstart validation.
 ```
 
 The arrows indicate implementation prerequisites, not permission to share or
@@ -176,11 +181,4 @@ US3: No parallel implementation tasks; complete T013, then T014
 
 ## Phase 7: Convergence
 
-- [ ] T017 Implement keyboard-operable board and game controls with a visible focus indicator in `sdd/battleship.html` per plan: keyboard access (missing).
-
-## Phase 8: Convergence
-
-- [ ] T018 Implement and verify the Restart flow from setup, active play, and finished play; clear prior shots, results, and human ships, and create a new legal randomized computer fleet per FR-022 (missing).
-- [ ] T019 Implement and verify Play again after either terminal outcome, returning to the same fresh setup state as Restart per FR-023 (missing).
-- [ ] T020 Make the two-board layout stack at narrow viewport widths while preserving access to controls per FR-003 and SC-008 (partial).
-- [ ] T021 Complete and record the quickstart end-to-end scenarios, including restart and play again, after the behavior is implemented per SC-006, SC-007, and Constitution III (partial).
+- [x] T017 Implement keyboard-operable board and game controls with a visible focus indicator in `sdd/battleship.html`.

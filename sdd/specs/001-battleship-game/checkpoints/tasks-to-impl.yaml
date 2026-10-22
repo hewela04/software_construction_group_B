@@ -4,13 +4,138 @@ metadata:
   last_updated: "2026-10-22"
 
 summary:
-  total_tasks: 21
-  completed_tasks: 14
+  total_tasks: 17
+  completed_tasks: 15
   in_progress_tasks: 0
-  pending_tasks: 7
-  completion_percentage: 66.7
+  pending_tasks: 2
+  completion_percentage: 88.2
 
 tasks:
+  - task_id: "T001"
+    description: "Create the standalone Battleship HTML document."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 1
+              line_end: 10
+              change_type: "added"
+              description: "Create a standalone HTML document with document metadata and the Battleship title."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Static implementation evidence review"
+        passed: 1
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified the standalone document declaration, UTF-8 and viewport metadata, page title, and self-contained SDD-local implementation."
+    upstream_trace:
+      plan_item: "Phase 1: Setup"
+      requirements: ["FR-001", "FR-024"]
+      full_trace: "FR-001/FR-024 → Phase 1 standalone browser document → T001 → sdd/battleship.html"
+
+  - task_id: "T002"
+    description: "Define board, participant, coordinate, and fleet data."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 232
+              line_end: 252
+              change_type: "added"
+              description: "Define the 10-by-10 board, coordinates, participants, and five-ship fleet."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Static implementation evidence review"
+        passed: 1
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified two participant boards, 10 rows and columns, A-J and 1-10 coordinates, and fleet lengths 4, 3, 3, 2, and 2."
+    upstream_trace:
+      plan_item: "Phase 2: Foundational"
+      requirements: ["FR-002", "FR-004"]
+      full_trace: "FR-002/FR-004 → Phase 2 board and fleet definitions → T002 → sdd/battleship.html"
+
+  - task_id: "T003"
+    description: "Implement placement validation and randomized fleet creation."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 320
+              line_end: 405
+              change_type: "added"
+              description: "Validate straight in-bounds non-overlapping placements and generate legal randomized fleets."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Static implementation evidence review"
+        passed: 1
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified placement validation and recursive randomized fleet placement are present and used by setup."
+    upstream_trace:
+      plan_item: "Phase 2: Foundational"
+      requirements: ["FR-005", "FR-008"]
+      full_trace: "FR-005/FR-008 → Phase 2 placement rules → T003 → sdd/battleship.html"
+
+  - task_id: "T004"
+    description: "Define in-memory match lifecycle and board state."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 255
+              line_end: 285
+              change_type: "added"
+              description: "Define setup, playing, and finished game state with participant boards, shots, hits, and winner."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Static implementation evidence review"
+        passed: 1
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified setup/playing/finished phases and browser-memory state for both boards, turns, shots, hit state, and winner."
+    upstream_trace:
+      plan_item: "Phase 2: Foundational"
+      requirements: ["FR-001", "FR-012", "FR-020"]
+      full_trace: "FR-001/FR-012/FR-020 → Phase 2 match lifecycle → T004 → sdd/battleship.html"
+
+  - task_id: "T005"
+    description: "Render identified boards and fleet setup controls."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 177
+              line_end: 231
+              change_type: "added"
+              description: "Render setup controls, board panels, and board render entry points."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Static implementation evidence review"
+        passed: 1
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified both identified board panels and ship/orientation setup controls are present."
+    upstream_trace:
+      plan_item: "Phase 3: User Story 1 implementation"
+      requirements: ["FR-002", "FR-006", "FR-024"]
+      full_trace: "FR-002/FR-006/FR-024 → Phase 3 board and setup interface → T005 → sdd/battleship.html"
+
   - task_id: "T006"
     description: "Implement human ship-placement preview and confirmation."
     status: "completed"
@@ -390,34 +515,43 @@ tasks:
       requirements: ["FR-023"]
       full_trace: "FR-023 → Phase 5 play-again behavior → T014 → sdd/battleship.html"
 
+  - task_id: "T017"
+    description: "Implement keyboard-operable controls and visible focus indicators."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 141
+              line_end: 145
+              change_type: "added"
+              description: "Provide a visible focus indicator for board cells, buttons, and inputs."
+            - line_start: 444
+              line_end: 469
+              change_type: "added"
+              description: "Render board coordinates as semantic, keyboard-operable buttons."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser keyboard verification"
+        passed: 2
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified Tab navigation reaches controls with :focus-visible styling and Enter on a focused board-cell button creates a placement preview."
+    upstream_trace:
+      plan_item: "Design Outline: keyboard access"
+      requirements: ["Plan: keyboard access"]
+      full_trace: "Plan keyboard-access decision → keyboard-operable controls and visible focus → T017 → sdd/battleship.html"
+
 pending_tasks:
   - task_id: "T015"
     description: "Ensure responsive board layout."
     blocked_by: ["T014"]
     priority: "P2"
   - task_id: "T016"
-    description: "Validate all quickstart scenarios."
-    blocked_by: ["T015"]
-    priority: "P2"
-  - task_id: "T017"
-    description: "Implement keyboard-operable controls and visible focus indicators."
-    blocked_by: []
-    priority: "P2"
-  - task_id: "T018"
-    description: "Implement Restart behavior."
-    blocked_by: ["T012"]
-    priority: "P2"
-  - task_id: "T019"
-    description: "Implement Play again behavior."
-    blocked_by: ["T013"]
-    priority: "P2"
-  - task_id: "T020"
-    description: "Ensure responsive board layout."
-    blocked_by: []
-    priority: "P2"
-  - task_id: "T021"
-    description: "Validate all quickstart scenarios."
-    blocked_by: ["T018", "T019", "T020"]
+    description: "Validate all quickstart scenarios, including responsive layout and keyboard accessibility."
+    blocked_by: ["T015", "T017"]
     priority: "P2"
 
 untracked_changes: []
@@ -492,6 +626,14 @@ traceability_chain:
     plan_phase: "Phase 5"
     plan_item: "Phase 5: User Story 3 implementation"
     tasks: ["T014"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-CROSS-CUTTING-KEYBOARD"
+    requirement: "Keyboard access"
+    plan_phase: "Phase 7"
+    plan_item: "Design Outline: keyboard access"
+    tasks: ["T017"]
     files:
       - "sdd/battleship.html"
     status: "complete"
