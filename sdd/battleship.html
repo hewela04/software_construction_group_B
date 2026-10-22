@@ -91,8 +91,54 @@
       }
 
       .board-table td {
-        height: 2rem;
+        height: 2.5rem;
         background: #d2e7ee;
+        padding: 0;
+      }
+
+      .board-cell {
+        width: 100%;
+        height: 100%;
+        min-height: 2.5rem;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .board-cell.ship-cell {
+        background: #8299a5;
+      }
+
+      .board-cell.preview-valid {
+        background: #f2d77e;
+      }
+
+      .board-cell.preview-invalid {
+        background: #efaaa5;
+      }
+
+      .board-cell:focus-visible,
+      button:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #174e70;
+        outline-offset: 2px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .placement-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      #placement-status {
+        min-height: 1.5em;
+        margin: 0;
       }
 
       .coordinate-corner {
@@ -136,6 +182,12 @@
               </label>
             </div>
           </fieldset>
+        </div>
+        <div class="placement-actions">
+          <button id="confirm-placement" type="button" disabled>Confirm placement</button>
+          <p id="placement-status" role="status" aria-live="polite">
+            Select a ship and choose a starting square to preview its placement.
+          </p>
         </div>
       </section>
 
@@ -220,6 +272,8 @@
       }
 
       let gameState = createInitialGameState();
+      let selectedShipId = GAME_DEFINITION.fleet[0].id;
+      let placementPreview = null;
 
       function getShipCells(row, column, length, orientation) {
         if (orientation !== "horizontal" && orientation !== "vertical") {
@@ -331,7 +385,7 @@
         return fleet;
       }
 
-      function renderBoard(table, boardName) {
+      function renderBoard(table, boardName, interactive = false) {
         const caption = document.createElement("caption");
         caption.className = "visually-hidden";
         caption.textContent = `${boardName}, columns A through J and rows 1 through 10`;
@@ -364,9 +418,19 @@
           row.append(rowHeader);
 
           for (const columnLabel of GAME_DEFINITION.board.columnLabels) {
-            const cell = document.createElement("td");
-            cell.setAttribute("aria-label", `${boardName} ${columnLabel}${rowLabel}`);
-            row.append(cell);
+            const tableCell = document.createElement("td");
+            if (interactive) {
+              const cell = document.createElement("button");
+              cell.type = "button";
+              cell.className = "board-cell";
+              cell.dataset.row = String(rowLabel - 1);
+              cell.dataset.column = String(GAME_DEFINITION.board.columnLabels.indexOf(columnLabel));
+              cell.setAttribute("aria-label", `${boardName} ${columnLabel}${rowLabel}`);
+              tableCell.append(cell);
+            } else {
+              tableCell.setAttribute("aria-label", `${boardName} ${columnLabel}${rowLabel}`);
+            }
+            row.append(tableCell);
           }
 
           body.append(row);
@@ -375,6 +439,12 @@
       }
 
       function renderShipPicker(container) {
+        container.replaceChildren();
+        const humanShips = gameState.boards.human.ships;
+        if (!humanShips.some(ship => ship.id === selectedShipId && ship.cells.length === 0)) {
+          selectedShipId = humanShips.find(ship => ship.cells.length === 0)?.id ?? null;
+        }
+
         GAME_DEFINITION.fleet.forEach((ship, index) => {
           const label = document.createElement("label");
           const input = document.createElement("input");
@@ -382,7 +452,8 @@
           input.name = "ship";
           input.value = ship.id;
           input.id = `ship-${ship.id}`;
-          input.checked = index === 0;
+          input.checked = ship.id === selectedShipId;
+          input.disabled = humanShips.find(placedShip => placedShip.id === ship.id).cells.length > 0;
 
           const shipName = ship.type[0].toUpperCase() + ship.type.slice(1);
           const instanceName = ship.type === "submarine"
@@ -394,9 +465,127 @@
         });
       }
 
-      renderBoard(document.getElementById("human-board"), "Your board");
+      const humanBoard = document.getElementById("human-board");
+      const shipPicker = document.getElementById("ship-picker");
+      const confirmPlacementButton = document.getElementById("confirm-placement");
+      const placementStatus = document.getElementById("placement-status");
+
+      function getPlacementMessage(cells) {
+        if (cells.some(cell =>
+          cell.row < 0 || cell.row >= GAME_DEFINITION.board.rows ||
+          cell.column < 0 || cell.column >= GAME_DEFINITION.board.columns)) {
+          return "That placement extends beyond the board. Choose another starting square.";
+        }
+        return "That placement overlaps an existing ship. Choose another starting square.";
+      }
+
+      function updateHumanBoard() {
+        const humanShips = gameState.boards.human.ships;
+        const previewKeys = new Set(
+          placementPreview?.cells.map(cell => `${cell.row},${cell.column}`) ?? [],
+        );
+        const occupiedKeys = new Set(
+          humanShips.flatMap(ship => ship.cells.map(cell => `${cell.row},${cell.column}`)),
+        );
+
+        humanBoard.querySelectorAll(".board-cell").forEach(cell => {
+          const key = `${cell.dataset.row},${cell.dataset.column}`;
+          const isPreviewCell = previewKeys.has(key);
+          const isOccupied = occupiedKeys.has(key);
+          cell.classList.toggle("ship-cell", isOccupied);
+          cell.classList.toggle(
+            "preview-valid",
+            isPreviewCell && placementPreview.valid,
+          );
+          cell.classList.toggle(
+            "preview-invalid",
+            isPreviewCell && !placementPreview.valid,
+          );
+          cell.setAttribute(
+            "aria-pressed",
+            String(isPreviewCell || isOccupied),
+          );
+          cell.textContent = isOccupied ? "S" : isPreviewCell ? "+" : "";
+        });
+      }
+
+      function updatePlacementControls() {
+        updateHumanBoard();
+        confirmPlacementButton.disabled = placementPreview === null;
+      }
+
+      function previewPlacement(row, column) {
+        if (gameState.phase !== GAME_PHASE.setup || !selectedShipId) return;
+        const ship = gameState.boards.human.ships.find(item => item.id === selectedShipId);
+        if (!ship || ship.cells.length > 0) return;
+
+        const orientation = document.querySelector('input[name="orientation"]:checked').value;
+        const cells = getShipCells(row, column, ship.length, orientation);
+        placementPreview = {
+          shipId: ship.id,
+          row,
+          column,
+          orientation,
+          cells,
+          valid: isPlacementValid(gameState.boards.human.ships, cells),
+        };
+        placementStatus.textContent = placementPreview.valid
+          ? `Preview: ${ship.type} occupies ${cells.length} squares. Confirm placement or choose another starting square.`
+          : getPlacementMessage(cells);
+        updatePlacementControls();
+      }
+
+      shipPicker.addEventListener("change", event => {
+        if (event.target.name !== "ship") return;
+        selectedShipId = event.target.value;
+        placementPreview = null;
+        placementStatus.textContent = "Select a starting square to preview this ship.";
+        updatePlacementControls();
+      });
+
+      document.querySelectorAll('input[name="orientation"]').forEach(input => {
+        input.addEventListener("change", () => {
+          if (placementPreview) {
+            previewPlacement(placementPreview.row, placementPreview.column);
+          }
+        });
+      });
+
+      humanBoard.addEventListener("click", event => {
+        const cell = event.target.closest(".board-cell");
+        if (!cell) return;
+        previewPlacement(Number(cell.dataset.row), Number(cell.dataset.column));
+      });
+
+      confirmPlacementButton.addEventListener("click", () => {
+        if (!placementPreview) return;
+        const ship = gameState.boards.human.ships.find(
+          item => item.id === placementPreview.shipId,
+        );
+        if (!ship || ship.cells.length > 0 ||
+            !isPlacementValid(gameState.boards.human.ships, placementPreview.cells)) {
+          placementPreview.valid = false;
+          placementStatus.textContent = getPlacementMessage(placementPreview.cells);
+          updateHumanBoard();
+          return;
+        }
+
+        if (!placementPreview.valid) {
+          placementStatus.textContent = getPlacementMessage(placementPreview.cells);
+          return;
+        }
+
+        ship.cells = placementPreview.cells.map(cell => ({ ...cell }));
+        placementPreview = null;
+        placementStatus.textContent = `${ship.type[0].toUpperCase()}${ship.type.slice(1)} placed. Select the next unplaced ship.`;
+        renderShipPicker(shipPicker);
+        updatePlacementControls();
+      });
+
+      renderBoard(humanBoard, "Your board", true);
       renderBoard(document.getElementById("computer-board"), "Computer board");
-      renderShipPicker(document.getElementById("ship-picker"));
+      renderShipPicker(shipPicker);
+      updatePlacementControls();
     </script>
   </body>
 </html>
