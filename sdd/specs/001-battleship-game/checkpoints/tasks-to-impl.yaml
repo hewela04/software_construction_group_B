@@ -5,10 +5,10 @@ metadata:
 
 summary:
   total_tasks: 21
-  completed_tasks: 13
+  completed_tasks: 14
   in_progress_tasks: 0
-  pending_tasks: 8
-  completion_percentage: 61.9
+  pending_tasks: 7
+  completion_percentage: 66.7
 
 tasks:
   - task_id: "T006"
@@ -343,11 +343,54 @@ tasks:
       requirements: ["FR-022"]
       full_trace: "FR-022 → Phase 5 restart behavior → T013 → sdd/battleship.html"
 
-pending_tasks:
   - task_id: "T014"
-    description: "Add Play again behavior."
-    blocked_by: ["T013"]
-    priority: "P2"
+    description: "Add Play again behavior after either terminal outcome."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 217
+              line_end: 219
+              change_type: "added"
+              description: "Add a Play again control hidden until game completion."
+            - line_start: 504
+              line_end: 505
+              change_type: "added"
+              description: "Capture the replay control and its visibility container."
+            - line_start: 647
+              line_end: 648
+              change_type: "modified"
+              description: "Show Play again when a terminal result is recorded."
+            - line_start: 858
+              line_end: 861
+              change_type: "modified"
+              description: "Reuse Restart's fresh setup reset for Play again, gated to finished games."
+            - line_start: 952
+              line_end: 952
+              change_type: "added"
+              description: "Wire the Play again control."
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 88
+              line_end: 88
+              change_type: "modified"
+              description: "Mark T014 complete."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright verification"
+        passed: 4
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified Play again is hidden during setup and ignored before game completion; after both human-win and computer-win terminal results it is visible and resets all match state to fresh manual setup with a legal randomized computer fleet."
+    upstream_trace:
+      plan_item: "Phase 5: User Story 3 implementation"
+      requirements: ["FR-023"]
+      full_trace: "FR-023 → Phase 5 play-again behavior → T014 → sdd/battleship.html"
+
+pending_tasks:
   - task_id: "T015"
     description: "Ensure responsive board layout."
     blocked_by: ["T014"]
@@ -441,6 +484,14 @@ traceability_chain:
     plan_phase: "Phase 5"
     plan_item: "Phase 5: User Story 3 implementation"
     tasks: ["T013"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-US3-PLAY-AGAIN"
+    requirement: "FR-023"
+    plan_phase: "Phase 5"
+    plan_item: "Phase 5: User Story 3 implementation"
+    tasks: ["T014"]
     files:
       - "sdd/battleship.html"
     status: "complete"

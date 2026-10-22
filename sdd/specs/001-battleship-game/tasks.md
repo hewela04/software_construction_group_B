@@ -85,7 +85,7 @@ file, so they are ordered and not marked parallelizable.
 ### Implementation
 
 - [x] T013 [US3] Add a Restart control available during setup, active play, and after a completed game in `sdd/battleship.html`; reset shots, hit marks, announcements, and outcome, return to manual human fleet setup, and create a new legal randomized computer fleet.
-- [ ] T014 [US3] Add a Play again control after a win or loss in `sdd/battleship.html`; make it produce the same fresh setup state as Restart, including a cleared human fleet and a new legal computer fleet.
+- [x] T014 [US3] Add a Play again control after a win or loss in `sdd/battleship.html`; make it produce the same fresh setup state as Restart, including a cleared human fleet and a new legal computer fleet.
 
 **Checkpoint**: Restart and Play again both return the game to a clean, playable setup without retaining results from the previous match.
 

@@ -1,45 +1,45 @@
-batch_id: "T013"
-completed_tasks: ["T013"]
+batch_id: "T014"
+completed_tasks: ["T014"]
 blocked_tasks: []
 files_changed:
-  T013:
+  T014:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Add a persistent Restart control and reset the match to manual setup with a newly randomized computer fleet."
+      description: "Add Play again after terminal outcomes and reuse the Restart flow to return to fresh setup."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T013 complete."
+      description: "Mark T014 complete."
     - file: "sdd/specs/001-battleship-game/checkpoints/tasks-to-impl.yaml"
       change_type: "modified"
-      description: "Record T013 implementation, verification, and updated task counts."
+      description: "Record T014 implementation, verification, and updated task counts."
 upstream_artifacts_consumed:
-  T013:
+  T014:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "FR-022 reset behavior and User Story 3 acceptance criteria."
+      used_for: "FR-023 and User Story 3 acceptance criterion for Play again after a win or loss."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
       used_for: "Phase 5 User Story 3 behavior and browser-only implementation constraints."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Verify restart behavior against the specified game rules without adding dependencies."
+      used_for: "Verify replay preserves the game rules and introduces no dependencies."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T013 scope and dependency on T012."
+      used_for: "T014 scope and dependency on the completed T013 restart flow."
 evidence_mapping:
-  T013:
-    - upstream: "spec.md#FR-022"
-      output: "sdd/battleship.html restartGame"
-      evidence: "Browser verification confirmed a clean manual setup and legal randomized computer fleet after setup, active-play, and finished-state restarts."
+  T014:
+    - upstream: "spec.md#FR-023"
+      output: "sdd/battleship.html playAgain"
+      evidence: "Browser verification confirmed the control is terminal-only and resets both human-win and computer-win results to fresh setup."
 traceability:
-  - requirement: "FR-022"
+  - requirement: "FR-023"
     plan_item: "Phase 5: User Story 3 implementation"
-    task: "T013"
+    task: "T014"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T013:
+  T014:
     command: "Integrated browser Playwright verification"
-    passed: 3
+    passed: 4
     failed: 0
     skipped: 0
     failures: []

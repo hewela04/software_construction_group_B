@@ -214,6 +214,9 @@
 
       <p id="turn-status" role="status" aria-live="polite"></p>
       <p><button id="restart-game" type="button">Restart</button></p>
+      <p id="play-again-container" hidden>
+        <button id="play-again" type="button">Play again</button>
+      </p>
 
       <section class="board-layout" aria-label="Game boards">
         <section class="board-panel" aria-labelledby="human-board-heading">
@@ -499,6 +502,8 @@
       const turnStatus = document.getElementById("turn-status");
       const placementStatus = document.getElementById("placement-status");
       const restartGameButton = document.getElementById("restart-game");
+      const playAgainContainer = document.getElementById("play-again-container");
+      const playAgainButton = document.getElementById("play-again");
       let pendingHumanShot = null;
 
       function getPlacementMessage(cells) {
@@ -632,6 +637,7 @@
         gameState.winner = winner;
         pendingHumanShot = null;
         turnStatus.textContent = message;
+        playAgainContainer.hidden = false;
         updatePlacementControls();
       }
 
@@ -850,12 +856,18 @@
         placementPreview = null;
         pendingHumanShot = null;
         setupControls.hidden = false;
+        playAgainContainer.hidden = true;
         document.querySelector('input[name="orientation"][value="horizontal"]').checked = true;
         placementStatus.textContent =
           "Select a ship and choose a starting square to preview its placement.";
         turnStatus.textContent = "";
         renderShipPicker(shipPicker);
         updatePlacementControls();
+      }
+
+      function playAgain() {
+        if (gameState.phase !== GAME_PHASE.finished) return;
+        restartGame();
       }
 
       function randomizeHumanFleet() {
@@ -937,6 +949,7 @@
       randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
       startGameButton.addEventListener("click", startGame);
       restartGameButton.addEventListener("click", restartGame);
+      playAgainButton.addEventListener("click", playAgain);
 
       confirmPlacementButton.addEventListener("click", () => {
         if (!placementPreview) return;
