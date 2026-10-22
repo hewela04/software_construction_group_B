@@ -5,10 +5,10 @@ metadata:
 
 summary:
   total_tasks: 17
-  completed_tasks: 9
+  completed_tasks: 10
   in_progress_tasks: 0
-  pending_tasks: 8
-  completion_percentage: 52.9
+  pending_tasks: 7
+  completion_percentage: 58.8
 
 tasks:
   - task_id: "T006"
@@ -175,11 +175,50 @@ tasks:
       requirements: ["FR-012", "FR-013", "FR-014"]
       full_trace: "FR-012/FR-013/FR-014 → Phase 4 human targeting → T009 → sdd/battleship.html"
 
-pending_tasks:
   - task_id: "T010"
-    description: "Resolve shots and show hit/miss feedback."
-    blocked_by: ["T009"]
-    priority: "P1"
+    description: "Resolve human shots and show hit/miss feedback."
+    status: "completed"
+    implementation:
+      files_changed:
+        - file: "sdd/battleship.html"
+          changes:
+            - line_start: 126
+              line_end: 134
+              change_type: "added"
+              description: "Style resolved hits red and misses blue-grey."
+            - line_start: 545
+              line_end: 578
+              change_type: "modified"
+              description: "Render shot results and accessible hit/miss labels on the computer board."
+            - line_start: 582
+              line_end: 615
+              change_type: "added"
+              description: "Resolve each pending human shot once, update ship hit state, announce its result, and pass the turn to the computer."
+            - line_start: 780
+              line_end: 780
+              change_type: "added"
+              description: "Connect accepted human-shot events to shot resolution."
+        - file: "sdd/specs/001-battleship-game/tasks.md"
+          changes:
+            - line_start: 71
+              line_end: 71
+              change_type: "modified"
+              description: "Mark T010 complete."
+    verification:
+      build_passed: true
+      test_results:
+        command: "Integrated browser Playwright verification"
+        passed: 13
+        failed: 0
+        skipped: 0
+        failures: []
+      notes: "Verified hit and miss results, ship hit tracking, distinct visual and accessible marks, announcements, turn handoff, coordinate lock, and no duplicate recording."
+    upstream_trace:
+      plan_item: "Phase 4: User Story 2 implementation"
+      requirements: ["FR-015", "FR-016"]
+      full_trace: "FR-015/FR-016 → Phase 4 shot resolution → T010 → sdd/battleship.html"
+
+pending_tasks:
   - task_id: "T011"
     description: "Implement computer turns."
     blocked_by: ["T010"]
@@ -241,6 +280,14 @@ traceability_chain:
     plan_phase: "Phase 4"
     plan_item: "Phase 4: User Story 2 implementation"
     tasks: ["T009"]
+    files:
+      - "sdd/battleship.html"
+    status: "complete"
+  - chain_id: "TRACE-US2-SHOT-RESOLUTION"
+    requirement: "FR-015/FR-016"
+    plan_phase: "Phase 4"
+    plan_item: "Phase 4: User Story 2 implementation"
+    tasks: ["T010"]
     files:
       - "sdd/battleship.html"
     status: "complete"

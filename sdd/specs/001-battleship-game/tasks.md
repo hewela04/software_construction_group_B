@@ -68,7 +68,7 @@ file, so they are ordered and not marked parallelizable.
 ### Implementation
 
 - [x] T009 [US2] Implement turn identification and human targeting in `sdd/battleship.html`; allow targeting only an unshot computer-board coordinate during the human turn and reject repeated or out-of-turn shots.
-- [ ] T010 [US2] Resolve each accepted shot in `sdd/battleship.html` as a hit or miss, record its result once, visibly mark hits red and misses blue/grey, and announce the corresponding result.
+- [x] T010 [US2] Resolve each accepted shot in `sdd/battleship.html` as a hit or miss, record its result once, visibly mark hits red and misses blue/grey, and announce the corresponding result.
 - [ ] T011 [US2] Implement the computer turn in `sdd/battleship.html`; after each non-terminal human shot choose a random unshot coordinate on the human board, report hit or miss, and return the turn to the human.
 - [ ] T012 [US2] Detect sunk ships and terminal outcomes in `sdd/battleship.html`; clearly distinguish and announce a sunk ship, show exactly “Congrats, you won!” when all computer ships are sunk or “Game over! Computer wins.” when all human ships are sunk, and reject further shots after either outcome.
 

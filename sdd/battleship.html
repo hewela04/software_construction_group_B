@@ -123,6 +123,16 @@
         background: #f2d77e;
       }
 
+      .board-cell.shot-hit {
+        background: #c94545;
+        color: #fff;
+      }
+
+      .board-cell.shot-miss {
+        background: #8299a5;
+        color: #fff;
+      }
+
       .board-cell:focus-visible,
       button:focus-visible,
       input:focus-visible {
@@ -544,11 +554,64 @@
           const column = Number(cell.dataset.column);
           const key = `${row},${column}`;
           const isPending = pendingHumanShot?.key === key;
-          const hasBeenTargeted = computerShots.has(key);
+          const shot = computerShots.get(key);
+          const hasBeenTargeted = shot !== undefined;
+          const coordinate =
+            `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
           cell.disabled = !humanCanTarget || hasBeenTargeted;
           cell.classList.toggle("target-pending", isPending);
+          cell.classList.toggle("shot-hit", shot?.result === "hit");
+          cell.classList.toggle("shot-miss", shot?.result === "miss");
           cell.setAttribute("aria-pressed", String(hasBeenTargeted));
+          cell.setAttribute(
+            "aria-label",
+            `Computer board ${coordinate}${shot?.result === "hit"
+              ? ", hit"
+              : shot?.result === "miss"
+                ? ", miss"
+                : ""}`,
+          );
+          cell.textContent = shot?.result === "hit"
+            ? "X"
+            : shot?.result === "miss"
+              ? "O"
+              : "";
         });
+      }
+
+      function resolveHumanShot(event) {
+        const { row, column } = event.detail;
+        const key = `${row},${column}`;
+        const shot = gameState.boards.computer.shots.get(key);
+        if (gameState.phase !== GAME_PHASE.playing ||
+            gameState.turn !== "human" ||
+            pendingHumanShot?.key !== key ||
+            !shot ||
+            shot.result !== "pending") {
+          turnStatus.textContent = "The selected shot could not be resolved.";
+          return;
+        }
+
+        const hitShip = gameState.boards.computer.ships.find(ship =>
+          ship.cells.some(cell => cell.row === row && cell.column === column),
+        );
+        const result = hitShip ? "hit" : "miss";
+        if (hitShip) hitShip.hits.add(key);
+        gameState.boards.computer.shots.set(key, {
+          ...shot,
+          result,
+        });
+        pendingHumanShot = null;
+        gameState.turn = "computer";
+
+        const coordinate =
+          `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
+        turnStatus.textContent =
+          `${result === "hit" ? "Hit" : "Miss"} at ${coordinate}.`;
+        updateComputerBoard();
+        computerBoard.dispatchEvent(new CustomEvent("human-shot-resolved", {
+          detail: { row, column, result },
+        }));
       }
 
       function targetComputerSquare(cell) {
@@ -714,6 +777,7 @@
         if (!cell) return;
         targetComputerSquare(cell);
       });
+      computerBoard.addEventListener("human-shot", resolveHumanShot);
 
       randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
       startGameButton.addEventListener("click", startGame);

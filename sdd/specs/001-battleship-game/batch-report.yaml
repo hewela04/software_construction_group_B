@@ -1,60 +1,52 @@
-batch_id: "T009"
-completed_tasks: ["T009"]
+batch_id: "T010"
+completed_tasks: ["T010"]
 blocked_tasks: []
 files_changed:
-  T009:
+  T010:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Add turn-aware computer-board targeting with duplicate and out-of-turn rejection and a pending shot event for result resolution."
+      description: "Resolve accepted shots as hits or misses, update shot and ship state once, color and label the target, announce the outcome, and pass the turn to the computer."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T009 complete."
+      description: "Mark T010 complete."
 upstream_artifacts_consumed:
-  T009:
+  T010:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "Turn identification, human targeting, and repeated-shot rejection in FR-012 through FR-014."
+      used_for: "Hit/miss determination, shot result display, required colors, and result announcements in FR-015 and FR-016."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Phase 4 sequencing and browser-only implementation boundary."
+      used_for: "Phase 4 sequencing and browser-only implementation scope."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Specification fidelity and game-rule verification."
+      used_for: "Requirement fidelity and verification of game rules."
     - artifact: "sdd/specs/001-battleship-game/data-model.md"
-      used_for: "Unique target coordinate and active-turn invariants."
+      used_for: "Shot result and ship hit-state invariants."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T009 scope and dependency on T008."
+      used_for: "T010 scope and dependency on T009."
 evidence_mapping:
-  T009:
-    - upstream: "spec.md#FR-012"
-      output: "sdd/battleship.html turn status"
-      evidence: "Browser checks verified the human turn is identified and targeting instructions are displayed."
-    - upstream: "spec.md#FR-013"
-      output: "sdd/battleship.html computer board target controls"
-      evidence: "Browser checks verified all unshot coordinates become targetable only during the active human turn."
-    - upstream: "spec.md#FR-014"
-      output: "sdd/battleship.html computer shot history"
-      evidence: "Browser checks confirmed a pending target is stored once and duplicate or out-of-turn attempts do not add shots."
+  T010:
+    - upstream: "spec.md#FR-015"
+      output: "sdd/battleship.html resolveHumanShot"
+      evidence: "Browser tests verified a ship coordinate records one hit and an unoccupied coordinate records one miss."
+    - upstream: "spec.md#FR-016"
+      output: "sdd/battleship.html computer-board hit/miss styles and accessible labels"
+      evidence: "Browser tests verified red hit marks, blue-grey miss marks, X/O indicators, and matching accessible labels."
 traceability:
-  - requirement: "FR-012"
+  - requirement: "FR-015"
     plan_item: "Phase 4: User Story 2 implementation"
-    task: "T009"
+    task: "T010"
     files: ["sdd/battleship.html"]
     status: "completed"
-  - requirement: "FR-013"
+  - requirement: "FR-016"
     plan_item: "Phase 4: User Story 2 implementation"
-    task: "T009"
-    files: ["sdd/battleship.html"]
-    status: "completed"
-  - requirement: "FR-014"
-    plan_item: "Phase 4: User Story 2 implementation"
-    task: "T009"
+    task: "T010"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T009:
+  T010:
     command: "Integrated browser Playwright verification"
-    passed: 9
+    passed: 13
     failed: 0
     skipped: 0
     failures: []
