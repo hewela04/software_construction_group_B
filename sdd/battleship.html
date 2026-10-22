@@ -4,8 +4,156 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Battleship</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, sans-serif;
+        color: #17324a;
+        background: #eef4f7;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      .game-shell {
+        max-width: 68rem;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+
+      .setup-controls,
+      .board-panel {
+        background: #fff;
+        border: 1px solid #b8cbd5;
+        border-radius: 0.5rem;
+        padding: 1rem;
+      }
+
+      .setup-controls {
+        margin-block: 1.5rem;
+      }
+
+      .setup-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 2rem;
+      }
+
+      fieldset {
+        border: 0;
+        margin: 0;
+        padding: 0;
+      }
+
+      legend {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .ship-options,
+      .orientation-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+      }
+
+      .board-layout {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .board-panel h2 {
+        margin-top: 0;
+      }
+
+      .board-scroll {
+        overflow-x: auto;
+      }
+
+      .board-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        text-align: center;
+      }
+
+      .board-table th,
+      .board-table td {
+        border: 1px solid #9bb2bf;
+        padding: 0.25rem;
+      }
+
+      .board-table thead th,
+      .board-table tbody th {
+        background: #dce9ef;
+      }
+
+      .board-table td {
+        height: 2rem;
+        background: #d2e7ee;
+      }
+
+      .coordinate-corner {
+        width: 2rem;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
   </head>
   <body>
+    <main class="game-shell">
+      <h1>Battleship</h1>
+
+      <section class="setup-controls" aria-labelledby="setup-heading">
+        <h2 id="setup-heading">Set up your fleet</h2>
+        <div class="setup-options">
+          <fieldset>
+            <legend>Select a ship</legend>
+            <div class="ship-options" id="ship-picker"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Choose orientation</legend>
+            <div class="orientation-options">
+              <label>
+                <input type="radio" name="orientation" value="horizontal" checked>
+                Horizontal
+              </label>
+              <label>
+                <input type="radio" name="orientation" value="vertical">
+                Vertical
+              </label>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="board-layout" aria-label="Game boards">
+        <section class="board-panel" aria-labelledby="human-board-heading">
+          <h2 id="human-board-heading">Your board</h2>
+          <div class="board-scroll">
+            <table class="board-table" id="human-board"></table>
+          </div>
+        </section>
+        <section class="board-panel" aria-labelledby="computer-board-heading">
+          <h2 id="computer-board-heading">Computer board</h2>
+          <div class="board-scroll">
+            <table class="board-table" id="computer-board"></table>
+          </div>
+        </section>
+      </section>
+    </main>
     <script>
       const GAME_DEFINITION = Object.freeze({
         board: Object.freeze({
@@ -182,6 +330,73 @@
         }
         return fleet;
       }
+
+      function renderBoard(table, boardName) {
+        const caption = document.createElement("caption");
+        caption.className = "visually-hidden";
+        caption.textContent = `${boardName}, columns A through J and rows 1 through 10`;
+        table.append(caption);
+
+        const head = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        const corner = document.createElement("th");
+        corner.className = "coordinate-corner";
+        corner.scope = "col";
+        corner.textContent = "";
+        headerRow.append(corner);
+
+        for (const columnLabel of GAME_DEFINITION.board.columnLabels) {
+          const header = document.createElement("th");
+          header.scope = "col";
+          header.textContent = columnLabel;
+          headerRow.append(header);
+        }
+
+        head.append(headerRow);
+        table.append(head);
+
+        const body = document.createElement("tbody");
+        for (const rowLabel of GAME_DEFINITION.board.rowLabels) {
+          const row = document.createElement("tr");
+          const rowHeader = document.createElement("th");
+          rowHeader.scope = "row";
+          rowHeader.textContent = String(rowLabel);
+          row.append(rowHeader);
+
+          for (const columnLabel of GAME_DEFINITION.board.columnLabels) {
+            const cell = document.createElement("td");
+            cell.setAttribute("aria-label", `${boardName} ${columnLabel}${rowLabel}`);
+            row.append(cell);
+          }
+
+          body.append(row);
+        }
+        table.append(body);
+      }
+
+      function renderShipPicker(container) {
+        GAME_DEFINITION.fleet.forEach((ship, index) => {
+          const label = document.createElement("label");
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "ship";
+          input.value = ship.id;
+          input.id = `ship-${ship.id}`;
+          input.checked = index === 0;
+
+          const shipName = ship.type[0].toUpperCase() + ship.type.slice(1);
+          const instanceName = ship.type === "submarine"
+            ? `${shipName} ${index - 2}`
+            : shipName;
+          label.htmlFor = input.id;
+          label.append(input, ` ${instanceName} (${ship.length} squares)`);
+          container.append(label);
+        });
+      }
+
+      renderBoard(document.getElementById("human-board"), "Your board");
+      renderBoard(document.getElementById("computer-board"), "Computer board");
+      renderShipPicker(document.getElementById("ship-picker"));
     </script>
   </body>
 </html>
