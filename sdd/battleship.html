@@ -505,6 +505,7 @@
 
       function updateHumanBoard() {
         const humanShips = gameState.boards.human.ships;
+        const humanShots = gameState.boards.human.shots;
         const previewKeys = new Set(
           placementPreview?.cells.map(cell => `${cell.row},${cell.column}`) ?? [],
         );
@@ -513,9 +514,15 @@
         );
 
         humanBoard.querySelectorAll(".board-cell").forEach(cell => {
-          const key = `${cell.dataset.row},${cell.dataset.column}`;
+          const row = Number(cell.dataset.row);
+          const column = Number(cell.dataset.column);
+          const key = `${row},${column}`;
           const isPreviewCell = previewKeys.has(key);
           const isOccupied = occupiedKeys.has(key);
+          const shot = humanShots.get(key);
+          const coordinate =
+            `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
+          cell.disabled = gameState.phase !== GAME_PHASE.setup;
           cell.classList.toggle("ship-cell", isOccupied);
           cell.classList.toggle(
             "preview-valid",
@@ -525,11 +532,31 @@
             "preview-invalid",
             isPreviewCell && !placementPreview.valid,
           );
+          cell.classList.toggle("shot-hit", shot?.result === "hit");
+          cell.classList.toggle("shot-miss", shot?.result === "miss");
           cell.setAttribute(
             "aria-pressed",
-            String(isPreviewCell || isOccupied),
+            String(isPreviewCell || isOccupied || shot !== undefined),
           );
-          cell.textContent = isOccupied ? "S" : isPreviewCell ? "+" : "";
+          cell.setAttribute(
+            "aria-label",
+            `Your board ${coordinate}${isOccupied ? ", ship" : ""}${
+              shot?.result === "hit"
+                ? ", hit"
+                : shot?.result === "miss"
+                  ? ", miss"
+                  : ""
+            }`,
+          );
+          cell.textContent = shot?.result === "hit"
+            ? "X"
+            : shot?.result === "miss"
+              ? "O"
+              : isOccupied
+                ? "S"
+                : isPreviewCell
+                  ? "+"
+                  : "";
         });
       }
 
@@ -610,6 +637,52 @@
           `${result === "hit" ? "Hit" : "Miss"} at ${coordinate}.`;
         updateComputerBoard();
         computerBoard.dispatchEvent(new CustomEvent("human-shot-resolved", {
+          detail: { row, column, result },
+        }));
+      }
+
+      function takeComputerTurn() {
+        if (gameState.phase !== GAME_PHASE.playing ||
+            gameState.turn !== "computer") {
+          return;
+        }
+
+        if (gameState.boards.computer.ships.every(isShipSunk)) return;
+
+        const humanBoardState = gameState.boards.human;
+        const unshotCoordinates = [];
+        for (let row = 0; row < humanBoardState.rows; row++) {
+          for (let column = 0; column < humanBoardState.columns; column++) {
+            const key = `${row},${column}`;
+            if (!humanBoardState.shots.has(key)) {
+              unshotCoordinates.push({ row, column, key });
+            }
+          }
+        }
+        if (unshotCoordinates.length === 0) {
+          throw new Error("Computer has no unshot coordinates remaining.");
+        }
+
+        const { row, column, key } = unshotCoordinates[
+          Math.floor(Math.random() * unshotCoordinates.length)
+        ];
+        const hitShip = humanBoardState.ships.find(ship =>
+          ship.cells.some(cell => cell.row === row && cell.column === column),
+        );
+        const result = hitShip ? "hit" : "miss";
+        if (hitShip) hitShip.hits.add(key);
+        humanBoardState.shots.set(key, {
+          attacker: "computer",
+          result,
+        });
+        gameState.turn = "human";
+
+        const coordinate =
+          `${GAME_DEFINITION.board.columnLabels[column]}${row + 1}`;
+        turnStatus.textContent =
+          `Computer ${result} at ${coordinate}. Your turn.`;
+        updatePlacementControls();
+        humanBoard.dispatchEvent(new CustomEvent("computer-shot-resolved", {
           detail: { row, column, result },
         }));
       }
@@ -778,6 +851,10 @@
         targetComputerSquare(cell);
       });
       computerBoard.addEventListener("human-shot", resolveHumanShot);
+      computerBoard.addEventListener(
+        "human-shot-resolved",
+        takeComputerTurn,
+      );
 
       randomizeFleetButton.addEventListener("click", randomizeHumanFleet);
       startGameButton.addEventListener("click", startGame);

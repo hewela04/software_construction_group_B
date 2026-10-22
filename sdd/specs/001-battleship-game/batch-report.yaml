@@ -1,52 +1,52 @@
-batch_id: "T010"
-completed_tasks: ["T010"]
+batch_id: "T011"
+completed_tasks: ["T011"]
 blocked_tasks: []
 files_changed:
-  T010:
+  T011:
     - file: "sdd/battleship.html"
       change_type: "modified"
-      description: "Resolve accepted shots as hits or misses, update shot and ship state once, color and label the target, announce the outcome, and pass the turn to the computer."
+      description: "Implement computer turns that choose unshot human-board coordinates, resolve and display hit/miss results, and return the turn to the human."
     - file: "sdd/specs/001-battleship-game/tasks.md"
       change_type: "modified"
-      description: "Mark T010 complete."
+      description: "Mark T011 complete."
 upstream_artifacts_consumed:
-  T010:
+  T011:
     - artifact: "sdd/specs/001-battleship-game/spec.md"
-      used_for: "Hit/miss determination, shot result display, required colors, and result announcements in FR-015 and FR-016."
+      used_for: "Computer random targeting, unique coordinates, hit/miss reporting, and no reply after a final human hit in FR-012, FR-017, and FR-020."
     - artifact: "sdd/specs/001-battleship-game/plan.md"
-      used_for: "Phase 4 sequencing and browser-only implementation scope."
+      used_for: "Phase 4 sequence and client-side game implementation boundary."
     - artifact: "sdd/.specify/memory/constitution.md"
-      used_for: "Requirement fidelity and verification of game rules."
+      used_for: "Specification fidelity and game-rule verification."
     - artifact: "sdd/specs/001-battleship-game/data-model.md"
-      used_for: "Shot result and ship hit-state invariants."
+      used_for: "Unique-target, shot-result, and ship-hit invariants."
     - artifact: "sdd/specs/001-battleship-game/tasks.md"
-      used_for: "T010 scope and dependency on T009."
+      used_for: "T011 scope and dependency on T010."
 evidence_mapping:
-  T010:
-    - upstream: "spec.md#FR-015"
-      output: "sdd/battleship.html resolveHumanShot"
-      evidence: "Browser tests verified a ship coordinate records one hit and an unoccupied coordinate records one miss."
-    - upstream: "spec.md#FR-016"
-      output: "sdd/battleship.html computer-board hit/miss styles and accessible labels"
-      evidence: "Browser tests verified red hit marks, blue-grey miss marks, X/O indicators, and matching accessible labels."
+  T011:
+    - upstream: "spec.md#FR-017"
+      output: "sdd/battleship.html takeComputerTurn"
+      evidence: "Browser tests verified the computer selects a fresh unshot coordinate and records correct hit and miss outcomes."
+    - upstream: "spec.md#FR-012"
+      output: "sdd/battleship.html turn state and turn-status announcement"
+      evidence: "Browser tests verified the computer reports its result and returns the turn to the human."
 traceability:
-  - requirement: "FR-015"
+  - requirement: "FR-012"
     plan_item: "Phase 4: User Story 2 implementation"
-    task: "T010"
+    task: "T011"
     files: ["sdd/battleship.html"]
     status: "completed"
-  - requirement: "FR-016"
+  - requirement: "FR-017"
     plan_item: "Phase 4: User Story 2 implementation"
-    task: "T010"
+    task: "T011"
     files: ["sdd/battleship.html"]
     status: "completed"
 protocol_violation: false
 errors: []
 warnings: []
 test_results:
-  T010:
+  T011:
     command: "Integrated browser Playwright verification"
-    passed: 13
+    passed: 15
     failed: 0
     skipped: 0
     failures: []
